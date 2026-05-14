@@ -468,7 +468,7 @@ export default function FavouritesPage() {
       );
 
       // Also merge localStorage (mock saves)
-      const localRaw = localStorage.getItem("verifind_saved_mock");
+      const localRaw = localStorage.getItem("cuny-remarket_saved_mock");
       const localIds: string[] = localRaw ? JSON.parse(localRaw) : [];
       const allIds = new Set<string>([...savedFromDb, ...localIds]);
 
@@ -496,7 +496,7 @@ export default function FavouritesPage() {
       }
 
       // Load wishlist items (those with hearts from WishList page)
-      const wlRaw = localStorage.getItem("verifind_wishlist_favs");
+      const wlRaw = localStorage.getItem("cuny-remarket_wishlist_favs");
       const wlItems: FavItem[] = wlRaw ? JSON.parse(wlRaw) : [];
 
       setItems([...mockItems, ...dbItems, ...wlItems]);
@@ -508,20 +508,20 @@ export default function FavouritesPage() {
     setItems((prev) => prev.filter((x) => x.id !== id));
 
     if (source === "wishlist") {
-      const wlRaw = localStorage.getItem("verifind_wishlist_favs");
+      const wlRaw = localStorage.getItem("cuny-remarket_wishlist_favs");
       const wl: FavItem[] = wlRaw ? JSON.parse(wlRaw) : [];
       localStorage.setItem(
-        "verifind_wishlist_favs",
+        "cuny-remarket_wishlist_favs",
         JSON.stringify(wl.filter((x) => x.id !== id))
       );
       return;
     }
 
     if (MOCK_MAP[id]) {
-      const localRaw = localStorage.getItem("verifind_saved_mock");
+      const localRaw = localStorage.getItem("cuny-remarket_saved_mock");
       const local: string[] = localRaw ? JSON.parse(localRaw) : [];
       localStorage.setItem(
-        "verifind_saved_mock",
+        "cuny-remarket_saved_mock",
         JSON.stringify(local.filter((x) => x !== id))
       );
     } else if (uid) {

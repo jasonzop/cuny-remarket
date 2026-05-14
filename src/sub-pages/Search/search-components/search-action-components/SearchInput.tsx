@@ -34,7 +34,7 @@ export default function SearchInput() {
           value={keyword}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Search Verifind products"
+          placeholder="Search CUNY ReMarket products"
           className="search-input-field flex-1 w-80 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-transparent min-w-0"
         />
         {isFocused && <DisplaySearchHistory setIsFocused={setIsFocused} />}

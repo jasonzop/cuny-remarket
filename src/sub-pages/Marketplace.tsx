@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../supabase-client";
 import {
   MapPin,
@@ -89,6 +89,10 @@ categoryInput: "",
 
 export default function Marketplace() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+const selectedCategoryFromURL =
+  searchParams.get("category") || "all";
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -98,6 +102,8 @@ const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] =
+  useState(selectedCategoryFromURL);
 
   const [selectedItem, setSelectedItem] = useState<MarketplaceListing | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
@@ -215,9 +221,27 @@ if (departmentError) {
       );
     }
 
-    if (selectedDepartmentFilter !== "all") {
-      query = query.eq("department_id", Number(selectedDepartmentFilter));
-    }
+if (selectedDepartmentFilter !== "all") {
+  query = query.eq(
+    "department_id",
+    Number(selectedDepartmentFilter)
+  );
+}
+
+if (selectedCategoryFilter !== "all") {
+  const category = itemCategories.find(
+    (c) =>
+      c.name.toLowerCase() ===
+      selectedCategoryFilter.toLowerCase()
+  );
+
+  if (category) {
+    query = query.eq(
+      "item_category_id",
+      category.id
+    );
+  }
+}
 
     query = query.order("created_at", { ascending: false });
 
@@ -233,12 +257,25 @@ if (departmentError) {
 
     if (error) console.error("Error fetching listings:", error.message);
     setLoading(false);
-  }, [blockedSellerIds, searchQuery, selectedDepartmentFilter]);
+    }, [
+  blockedSellerIds,
+  searchQuery,
+  selectedDepartmentFilter,
+  selectedCategoryFilter,
+  itemCategories,
+]);
 
   useEffect(() => {
     fetchDepartmentsAndCourses();
     fetchItemCategories();
   }, [fetchDepartmentsAndCourses]);
+  useEffect(() => {
+  if (selectedCategoryFromURL) {
+    setSelectedCategoryFilter(
+      selectedCategoryFromURL
+    );
+  }
+}, [selectedCategoryFromURL]);
 
   useEffect(() => {
     if (selectedItem && selectedItem.latitude && selectedItem.longitude) {

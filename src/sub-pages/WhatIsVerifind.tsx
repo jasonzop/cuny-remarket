@@ -224,7 +224,7 @@ function WhatIsCunyReMarket() {
             backgroundClip: "text",
           }}
         >
-          What is CUNY ReMarket?
+          About CUNY ReMarket?
         </h2>
 
         <p

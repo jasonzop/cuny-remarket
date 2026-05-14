@@ -217,7 +217,7 @@ console.log("SUPABASE SIGNUP ERROR:", error);
                     backgroundClip: "text",
                   }}
                 >
-                  Verifind
+                  CUNY ReMarket
                 </span>
               </div>
 

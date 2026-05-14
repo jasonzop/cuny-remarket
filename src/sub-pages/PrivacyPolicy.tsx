@@ -100,7 +100,7 @@ export default function PrivacyPolicy() {
         }}
       >
         <p className="pp-brand" style={subStyle}>
-          Verifind
+          CUNY ReMarket
         </p>
         <h1 className="pp-title" style={titleStyle}>
           Privacy Policy
@@ -121,10 +121,10 @@ export default function PrivacyPolicy() {
             }`,
           }}
         >
-          Welcome to Verifind. We are a small development team based in New York
+          Welcome to CUNY ReMarket. We are a small development team based in New York
           City, New York, United States. This Privacy Policy explains what
           information we collect from you when you use our platform, how we use
-          it, and how we protect it. By using Verifind, you agree to the
+          it, and how we protect it. By using CUNY ReMarket, you agree to the
           practices described in this policy.
         </p>
 
@@ -135,7 +135,7 @@ export default function PrivacyPolicy() {
             Account Information
           </p>
           <p className="pp-p" style={pStyle}>
-            When you create an account on Verifind, we collect:
+            When you create an account on CUNY ReMarket, we collect:
           </p>
           <BulletList
             items={[
@@ -148,7 +148,7 @@ export default function PrivacyPolicy() {
             Search History
           </p>
           <p className="pp-p" style={pStyle}>
-            When you search for products on Verifind, we store your user ID, the
+            When you search for products on CUNY ReMarket, we store your user ID, the
             search term you entered, and the timestamp of the search. This is
             used to power your search history feature within the platform.
           </p>
@@ -194,7 +194,7 @@ export default function PrivacyPolicy() {
           </p>
           <BulletList
             items={[
-              "Provide and operate the Verifind platform",
+              "Provide and operate the CUNY ReMarket platform",
               "Authenticate your account and keep it secure",
               "Display your search history, wishlist, listings, and messages",
               "Improve and maintain the platform",
@@ -210,7 +210,7 @@ export default function PrivacyPolicy() {
           <p className="pp-p" style={pStyle}>
             All user data is stored securely using Supabase, a managed cloud
             database platform. Passwords are hashed and never stored in plain
-            text. We do not store any payment information — Verifind does not
+            text. We do not store any payment information — CUNY ReMarket does not
             currently process payments.
           </p>
         </div>
@@ -221,7 +221,7 @@ export default function PrivacyPolicy() {
         <div className="pp-section">
           <SectionTitle num={4}>Third-Party Services</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            We use the following third-party services to operate Verifind:
+            We use the following third-party services to operate CUNY ReMarket:
           </p>
           <BulletList
             items={[
@@ -253,7 +253,7 @@ export default function PrivacyPolicy() {
         <div className="pp-section">
           <SectionTitle num={6}>Children's Privacy</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            Verifind is not directed at children under the age of 13. We do not
+            CUNY ReMarket is not directed at children under the age of 13. We do not
             knowingly collect personal information from anyone under 13. If you
             believe a child has provided us with their information, please
             contact us and we will delete it.
@@ -289,7 +289,7 @@ export default function PrivacyPolicy() {
           <p className="pp-p" style={pStyle}>
             We may update this Privacy Policy from time to time. If we make
             significant changes, we will update the effective date at the top of
-            this page. Continued use of Verifind after any changes constitutes
+            this page. Continued use of CUNY ReMarket after any changes constitutes
             your acceptance of the updated policy.
           </p>
         </div>
@@ -310,7 +310,7 @@ export default function PrivacyPolicy() {
             }}
           >
             <p className="pp-contact-name" style={titleStyle}>
-              Verifind
+              CUNY ReMarket
             </p>
             <p className="pp-p" style={{ ...pStyle, marginBottom: 4 }}>
               New York City, New York, United States

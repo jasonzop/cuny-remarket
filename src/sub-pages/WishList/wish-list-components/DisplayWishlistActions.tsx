@@ -13,10 +13,8 @@ export default function DisplayWishlistActions({
     <>
       <WatchlistSummary visible={visible} />
 
-      {/* Search + Share row */}
       <SearchShareWishlist visible={visible} />
 
-      {/* Sort & Filter bar — frosted glass pill row */}
       <DisplaySortingButtons visible={visible} />
     </>
   );

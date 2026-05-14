@@ -67,7 +67,7 @@ export default function SearchSuggestions({ visible }: SearchSuggestionsProps) {
             </span>
 
             <span className={`text-xs hidden sm:inline ${styles.textMuted}`}>
-              — Real-time Verifind lookup
+              — Real-time CUNY ReMarket lookup
             </span>
           </div>
 

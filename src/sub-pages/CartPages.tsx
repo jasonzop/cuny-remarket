@@ -320,7 +320,7 @@ export default function CartPage() {
   const [showPromote, setShowPromote] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("verifind_cart");
+    const stored = sessionStorage.getItem("cuny-remarket_cart");
     let existing: CartItem[] = stored ? JSON.parse(stored) : [];
     const incoming = (location.state as any)?.item as CartItem | undefined;
     if (incoming) {
@@ -331,7 +331,7 @@ export default function CartPage() {
       } else {
         existing = [...existing, { ...incoming, qty: 1, stock: maxStock }];
       }
-      sessionStorage.setItem("verifind_cart", JSON.stringify(existing));
+      sessionStorage.setItem("cuny-remarket_cart", JSON.stringify(existing));
       window.history.replaceState({}, "");
     }
     setCart(existing);
@@ -339,7 +339,7 @@ export default function CartPage() {
 
   const persist = (updated: CartItem[]) => {
     setCart(updated);
-    sessionStorage.setItem("verifind_cart", JSON.stringify(updated));
+    sessionStorage.setItem("cuny-remarket_cart", JSON.stringify(updated));
   };
   const remove    = (id: string) => persist(cart.filter(x => x.id !== id));
   const changeQty = (id: string, d: number) => persist(

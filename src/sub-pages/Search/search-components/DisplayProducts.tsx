@@ -182,7 +182,7 @@ export default function DisplayProducts({
                     boxShadow: "0 1px 8px rgba(139, 92, 246, .25)",
                   }}
                 >
-                  View on Verifind ↗
+                  View on CUNY ReMarket ↗
                 </a>
               </div>
             </div>

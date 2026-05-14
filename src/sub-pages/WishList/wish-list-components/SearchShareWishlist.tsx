@@ -1,4 +1,3 @@
-import ShareWishListButton from "./ShareWishListButton";
 import { useWishlist } from "../../../Contexts/WishListContext";
 
 interface SearchShareWishlistProps {
@@ -12,35 +11,31 @@ export default function SearchShareWishlist({
 
   return (
     <div
-      className="wishlist-search-row relative z-10 mt-4 px-6 flex justify-center items-center gap-2 flex-wrap"
+      className="relative z-10 mt-6 px-6 flex justify-center"
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(10px)",
-        transition: "opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s",
+        transform: visible
+          ? "translateY(0)"
+          : "translateY(10px)",
+        transition:
+          "opacity .5s ease, transform .5s ease",
       }}
     >
       <input
         type="text"
-        placeholder="Search your wishlist..."
+        placeholder="Search saved items..."
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="wishlist-search-input flex-1 min-w-0 max-w-md px-4 py-2 rounded-xl focus:outline-none transition"
+        onChange={(e) =>
+          setSearchQuery(e.target.value)
+        }
+        className="w-full max-w-2xl px-5 py-3 rounded-2xl text-white placeholder-gray-400 outline-none"
         style={{
-          background: "rgba(255,255,255,0.7)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(255,255,255,0.85)",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+          background: "rgba(255,255,255,.08)",
+          border:
+            "1px solid rgba(255,255,255,.1)",
+          backdropFilter: "blur(14px)",
         }}
       />
-      <button
-        className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 shadow-md"
-        style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
-      >
-        Search
-      </button>
-
-      {/* Share wishlist button */}
-      <ShareWishListButton />
     </div>
   );
 }

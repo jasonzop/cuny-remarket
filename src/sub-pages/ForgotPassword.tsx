@@ -117,7 +117,7 @@ export default function ForgotPassword() {
                   backgroundClip: "text",
                 }}
               >
-                Verifind
+                CUNY ReMarket
               </span>
             </div>
 

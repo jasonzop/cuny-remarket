@@ -17,7 +17,7 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = "verifind-theme";
+const STORAGE_KEY = "cuny-remarket-theme";
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === "undefined") {

@@ -137,7 +137,7 @@ export default function ResetPassword() {
                   backgroundClip: "text",
                 }}
               >
-                Verifind
+                CUNY ReMarket
               </span>
             </div>
 

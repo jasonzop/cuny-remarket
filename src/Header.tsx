@@ -196,9 +196,9 @@ const catIcons: Record<string, React.ReactNode> = {
 
     if (id === "about") return (
       <div className="p-4 w-56">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">What is Verifind?</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">About CUNY ReMarket?</p>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">We verify listings so you shop with confidence — no fakes, no price inflation.</p>
-        <Link to="/what-is-verifind" onClick={closeAll} className="flex items-center justify-center py-2 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD }}>Learn More</Link>
+        <Link to="/what-is-cuny-remarket" onClick={closeAll} className="flex items-center justify-center py-2 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD }}>Learn More</Link>
       </div>
     );
 
@@ -210,7 +210,7 @@ const catIcons: Record<string, React.ReactNode> = {
     { to: "/wish-list",        label: "Wish List",         dropID: "wishlist"    as DropID },
     { to: "/marketplace",      label: "Marketplace",       dropID: "marketplace" as DropID },
     ...(loggedIn ? [{ to: "/messages", label: "Messages", dropID: null as DropID }] : []),
-    { to: "/what-is-verifind", label: "What is Verifind?", dropID: "about"       as DropID },
+    { to: "/what-is-cuny-remarket", label: "About CUNY ReMarket?", dropID: "about"       as DropID },
   ];
 
   const activeProfileLabel = headerUsername || "Profile";
@@ -269,7 +269,7 @@ const catIcons: Record<string, React.ReactNode> = {
                 transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
                 style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
               >
-                Verifind
+                CUNY ReMarket
               </motion.span>
             </Link>
           )}

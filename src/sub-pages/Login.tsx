@@ -129,7 +129,7 @@ if (!isCunyEmail(normalizedEmail)) {
           <h2 className="text-2xl font-extrabold text-gray-900">
             Welcome, {welcomeUsername}!
           </h2>
-          <p className="text-sm text-gray-400">Taking you to Verifind...</p>
+          <p className="text-sm text-gray-400">Taking you to CUNY ReMarket...</p>
         </div>
       </div>
     );
@@ -191,7 +191,7 @@ if (!isCunyEmail(normalizedEmail)) {
                   backgroundClip: "text",
                 }}
               >
-                Verifind
+                CUNY ReMarket
               </span>
             </div>
 
@@ -200,7 +200,7 @@ if (!isCunyEmail(normalizedEmail)) {
             </p>
 
             <h2 className="text-xl font-bold text-gray-900 mb-1 self-start">
-              Welcome To Verifind
+              Welcome To CUNY ReMarket
             </h2>
             <p className="text-sm text-gray-400 mb-6 self-start">
               Sign in to your account

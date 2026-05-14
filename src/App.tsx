@@ -35,7 +35,7 @@ function App() {
             element={<MarketplaceInbox />}
           />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/what-is-verifind" element={<WhatIsVerifind />} />
+          <Route path="/what-is-cuny-remarket" element={<WhatIsVerifind />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
