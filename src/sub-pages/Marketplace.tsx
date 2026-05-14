@@ -212,7 +212,7 @@ if (departmentError) {
 
     let query = supabase
       .from("marketplace_listings")
-      .select("*, departments(*), courses(*)")
+      .select("*, departments(*), courses(*), item_categories(*)")
       .neq("status", "Sold");
 
     if (searchQuery.trim()) {

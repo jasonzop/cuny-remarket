@@ -85,35 +85,46 @@ export default function Header() {
   const goSell      = () => { closeAll(); navigate("/marketplace?sell=1"); };
 
 const catIcons: Record<string, React.ReactNode> = {
-  textbooks: (
+  Textbooks: (
     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round"
-      d="M12 6.25v11.5M5.75 7.5c0-1.1.9-2 2-2h8.5a2 2 0 012 2v9.5a1 1 0 01-1.5.86L12 15.5l-4.75 2.36a1 1 0 01-1.5-.86V7.5z"/>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6.25v11.5M5.75 7.5c0-1.1.9-2 2-2h8.5a2 2 0 012 2v9.5a1 1 0 01-1.5.86L12 15.5l-4.75 2.36a1 1 0 01-1.5-.86V7.5z"
+      />
     </svg>
   ),
 
-  electronics: (
+  Electronics: (
     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round"
-      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"/>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"
+      />
     </svg>
   ),
 
-  dorm: (
+  "Dorm Essentials": (
     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round"
-      d="M4 10h16v10H4V10zm0-4h16v4H4V6z"/>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 10h16v10H4V10zm0-4h16v4H4V6z"
+      />
     </svg>
   ),
 
-  clothing: (
+  Clothing: (
     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round"
-      d="M8 6l4-2 4 2 2 4-2 2v8H8v-8L6 10l2-4z"/>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 6l4-2 4 2 2 4-2 2v8H8v-8L6 10l2-4z"
+      />
     </svg>
   ),
 };
-
   const FavIcon  = <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>;
   const CartIcon = <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
 
@@ -125,26 +136,26 @@ const catIcons: Record<string, React.ReactNode> = {
 </p>
         <div className="flex flex-col gap-0.5 mb-3">
           {[
-  {
-    cat: "textbooks",
-    label: "Textbooks",
-    sub: "CSCI, Math, Science books",
-  },
-  {
-    cat: "electronics",
-    label: "Electronics",
-    sub: "Laptops, calculators, iPads",
-  },
-  {
-    cat: "dorm",
-    label: "Dorm Essentials",
-    sub: "Mini fridges, lamps, furniture",
-  },
-  {
-    cat: "clothing",
-    label: "Clothing",
-    sub: "Hoodies, jackets, CUNY merch",
-  },
+{
+  cat: "Textbooks",
+  label: "Textbooks",
+  sub: "CSCI, Math, Science books",
+},
+{
+  cat: "Electronics",
+  label: "Electronics",
+  sub: "Laptops, calculators, iPads",
+},
+{
+  cat: "Dorm Essentials",
+  label: "Dorm Essentials",
+  sub: "Mini fridges, lamps, furniture",
+},
+{
+  cat: "Clothing",
+  label: "Clothing",
+  sub: "Hoodies, jackets, CUNY merch",
+},
 ].map((item) => (
             <button
               key={item.cat}
