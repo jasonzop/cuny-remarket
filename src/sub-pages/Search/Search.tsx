@@ -4,7 +4,6 @@ import { useTheme } from "../../Contexts/ThemeContext";
 import DisplayProducts from "./search-components/DisplayProducts";
 import SearchHeading from "./search-components/SearchHeading";
 import SearchSuggestions from "./search-components/SearchSuggestions";
-import SearchActions from "./search-components/SearchActions";
 import ApplyGradientOrbs from "../SharedComponents/ApplyGradientOrbs";
 import {
   Link,
