@@ -116,7 +116,6 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -290,22 +289,6 @@ if (majorData) {
     }
   };
 
-  const handleCopyWishlistLink = async () => {
-    if (!currentUsername.trim()) return;
-
-    const url = `${window.location.origin}/wish-list?user=${encodeURIComponent(
-      currentUsername.trim()
-    )}`;
-
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
-    } catch {
-      setAvatarMessage("Could not copy link. Please try again.");
-    }
-  };
-
   const requirements = [
     { label: "8+ characters", test: newPassword.length >= 8 },
     { label: "Contains a number", test: /\d/.test(newPassword) },
@@ -468,14 +451,14 @@ if (majorData) {
                 icon={<Store size={20} />}
                 title="My Listings"
                 description="View the marketplace items you have posted."
-                onClick={() => navigate("/marketplace")}
+                onClick={() => navigate("/my-listings")}
               />
               <SettingRow
-                icon={<Heart size={20} />}
-                title={copiedLink ? "Wishlist Link Copied" : "Saved Items"}
-                description="View or share your saved marketplace items."
-                onClick={handleCopyWishlistLink}
-              />
+  icon={<Heart size={20} />}
+  title="Saved Items"
+  description="View your saved marketplace items."
+  onClick={() => navigate("/saved-items")}
+/>
               <SettingRow
                 icon={<LockKeyhole size={20} />}
                 title="Privacy & Security"

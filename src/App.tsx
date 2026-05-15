@@ -13,6 +13,8 @@ import MarketplaceInbox from "./sub-pages/MarketplaceInbox";
 import BlockedUsers from "./sub-pages/BlockedUsers";
 import Layout from "./Contexts/Layout";
 import PrivacyPolicy from "./sub-pages/PrivacyPolicy";
+import MyListings from "./sub-pages/MyListings";
+import SavedItems from "./sub-pages/SavedItems";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
       <Header />
       <Layout>
         <Routes>
+          <Route path="/saved-items" element={<SavedItems />} />
+          <Route path="/my-listings" element={<MyListings />} />
           <Route path="/" element={<Search />} />
           <Route path="/search" element={<Search />} />
           <Route path="/wish-list" element={<WishList />} />

@@ -13,6 +13,7 @@ import {
   ShieldAlert,
   UserX,
   Pencil,
+Heart,
 } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -88,12 +89,17 @@ categoryInput: "",
   longitude: null as number | null,
 };
 
-export default function Marketplace() {
+export default function Marketplace({
+  myListingsOnly = false,
+}: {
+  myListingsOnly?: boolean;
+}) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
 const selectedCategoryFromURL =
   searchParams.get("category") || "all";
+
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -125,6 +131,7 @@ const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [savedListingIds, setSavedListingIds] = useState<string[]>([]);
 
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -215,6 +222,9 @@ if (departmentError) {
       .from("marketplace_listings")
       .select("*, departments(*), courses(*), item_categories(*)")
       .neq("status", "Sold");
+if (myListingsOnly && currentUserId) {
+  query = query.eq("user_id", currentUserId);
+}
 
     if (searchQuery.trim()) {
       query = query.or(
@@ -264,6 +274,8 @@ if (selectedCategoryFilter !== "all") {
   selectedDepartmentFilter,
   selectedCategoryFilter,
   itemCategories,
+  currentUserId,
+  myListingsOnly,
 ]);
 
   useEffect(() => {
@@ -313,6 +325,7 @@ if (selectedCategoryFilter !== "all") {
       return;
     }
 
+
     const fetchBlockedSellers = async () => {
       const { data, error } = await supabase
         .from("marketplace_user_blocks")
@@ -333,6 +346,33 @@ if (selectedCategoryFilter !== "all") {
 
     fetchBlockedSellers();
   }, [currentUserId]);
+
+  useEffect(() => {
+  if (!currentUserId) {
+    setSavedListingIds([]);
+    return;
+  }
+
+  const fetchSavedItems = async () => {
+    const { data, error } = await supabase
+      .from("marketplace_saved_items")
+      .select("listing_id")
+      .eq("user_id", currentUserId);
+
+    if (error) {
+      console.error("Error fetching saved items:", error.message);
+      return;
+    }
+
+    setSavedListingIds(
+      (data ?? [])
+        .map((row) => row.listing_id)
+        .filter(Boolean)
+    );
+  };
+
+  fetchSavedItems();
+}, [currentUserId]);
 
   useEffect(() => {
     const delayDebounceFN = setTimeout(() => {
@@ -708,7 +748,49 @@ const handleCreateCategory = async () => {
     setSelectedItem(null);
     navigate(`/marketplace/inbox/${conversationId}`);
   };
+const handleToggleSave = async () => {
+  if (!selectedItem || !requireSignedIn()) return;
 
+  const alreadySaved = savedListingIds.includes(selectedItem.id);
+
+  if (alreadySaved) {
+    const { error } = await supabase
+      .from("marketplace_saved_items")
+      .delete()
+      .eq("user_id", currentUserId)
+      .eq("listing_id", selectedItem.id);
+
+    if (error) {
+      alert("Could not remove saved item.");
+      return;
+    }
+
+setSavedListingIds((prev) =>
+  prev.includes(selectedItem.id)
+    ? prev.filter((id) => id !== selectedItem.id)
+    : [...prev, selectedItem.id]
+);
+
+    return;
+  }
+
+const { error } = await supabase
+  .from("marketplace_saved_items")
+  .upsert(
+    {
+      user_id: currentUserId,
+      listing_id: selectedItem.id,
+    },
+    { onConflict: "user_id,listing_id" }
+  );
+
+  if (error) {
+    alert("Could not save item.");
+    return;
+  }
+
+  setSavedListingIds((prev) => [...prev, selectedItem.id]);
+};
   const handleBlockSeller = async () => {
     if (!selectedItem || !requireSignedIn()) return;
 
@@ -837,7 +919,7 @@ const handleCreateCategory = async () => {
 
       <div className="relative z-10 max-w-6xl mx-auto w-full">
         <h1 className="marketplace-title text-4xl font-black mb-8 text-center text-gray-900 tracking-tight">
-          Marketplace
+          {myListingsOnly ? "My Listings" : "Marketplace"}
         </h1>
 
         {actionMessage && (
@@ -1535,7 +1617,24 @@ ${
                   >
                     <MessageCircle size={20} /> Message Seller
                   </button>
-
+<button
+  onClick={handleToggleSave}
+  className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 border border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 transition-all"
+>
+  <Heart
+    size={20}
+    fill={
+      selectedItem &&
+      savedListingIds.includes(selectedItem.id)
+        ? "currentColor"
+        : "none"
+    }
+  />
+  {selectedItem &&
+  savedListingIds.includes(selectedItem.id)
+    ? "Saved"
+    : "Save Item"}
+</button>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => {
