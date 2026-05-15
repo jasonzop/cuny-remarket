@@ -27,6 +27,12 @@ type ListingMeta = {
   title: string;
 };
 
+type UserMeta = {
+  id: string;
+  username: string;
+  full_name?: string;
+};
+
 const REPORT_REASONS = [
   { id: "scam", label: "Scam or deceptive behavior" },
   { id: "harassment", label: "Harassment or abusive language" },
@@ -65,6 +71,7 @@ export default function MarketplaceInbox() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [listingMap, setListingMap] = useState<Record<string, ListingMeta>>({});
+  const [userMap, setUserMap] = useState<Record<string, UserMeta>>({});
 
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -192,17 +199,38 @@ export default function MarketplaceInbox() {
     setConversations(rows);
 
     if (rows.length > 0) {
-      const listingIds = [...new Set(rows.map((row) => row.listing_id))];
-      const { data: listingData } = await supabase
-        .from("marketplace_listings")
-        .select("id,title")
-        .in("id", listingIds);
+const listingIds = [...new Set(rows.map((row) => row.listing_id))];
 
-      const nextMap: Record<string, ListingMeta> = {};
-      for (const listing of listingData || []) {
-        nextMap[listing.id] = listing as ListingMeta;
-      }
-      setListingMap(nextMap);
+const participantIds = [
+  ...new Set(
+    rows.flatMap((row) => [row.buyer_id, row.seller_id])
+  ),
+];
+
+const [{ data: listingData }, { data: profileData }] =
+  await Promise.all([
+    supabase
+      .from("marketplace_listings")
+      .select("id,title")
+      .in("id", listingIds),
+
+    supabase
+      .from("profiles")
+      .select("id, username, full_name")
+      .in("id", participantIds),
+  ]);
+
+const nextListingMap: Record<string, ListingMeta> = {};
+for (const listing of listingData || []) {
+  nextListingMap[listing.id] = listing as ListingMeta;
+}
+setListingMap(nextListingMap);
+
+const nextUserMap: Record<string, UserMeta> = {};
+for (const profile of profileData || []) {
+  nextUserMap[profile.id] = profile as UserMeta;
+}
+setUserMap(nextUserMap);
 
       if (!conversationId) {
         navigate(`/marketplace/inbox/${rows[0].id}`, { replace: true });
@@ -480,8 +508,22 @@ export default function MarketplaceInbox() {
                       }`}
                     >
                       <p className="text-sm font-bold text-slate-100 truncate">
-                        {listingMap[conversation.listing_id]?.title || "Listing"}
-                      </p>
+  {userMap[
+    conversation.buyer_id === currentUserId
+      ? conversation.seller_id
+      : conversation.buyer_id
+  ]?.full_name ||
+    userMap[
+      conversation.buyer_id === currentUserId
+        ? conversation.seller_id
+        : conversation.buyer_id
+    ]?.username ||
+    "User"}
+</p>
+
+<p className="text-xs text-slate-300 truncate mt-0.5">
+  {listingMap[conversation.listing_id]?.title || "Listing"}
+</p>
                       <p className="text-xs text-slate-300 mt-1">
                         {formatMessageTime(conversation.last_message_at)}
                       </p>
@@ -495,9 +537,21 @@ export default function MarketplaceInbox() {
           <section className="flex flex-col min-h-[72vh]">
             <div className="p-4 border-b border-cyan-500/20 bg-[#111f3d]/70 flex items-center justify-between gap-3 flex-wrap">
               <h3 className="text-lg font-black text-slate-100 truncate">
-                {activeConversation
-                  ? listingMap[activeConversation.listing_id]?.title || "Conversation"
-                  : "Select a conversation"}
+                {activeConversation ? (
+  <div>
+    <p className="text-lg font-black text-slate-100 truncate">
+      {userMap[otherParticipantId || ""]?.full_name ||
+        userMap[otherParticipantId || ""]?.username ||
+        "User"}
+    </p>
+
+    <p className="text-sm text-slate-400 font-medium">
+      {listingMap[activeConversation.listing_id]?.title}
+    </p>
+  </div>
+) : (
+  "Select a conversation"
+)}
               </h3>
               {activeConversation && (
                 <div className="flex items-center gap-2">
