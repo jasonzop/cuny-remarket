@@ -335,7 +335,7 @@ const catIcons: Record<string, React.ReactNode> = {
 
           {/* Right: Saved, Cart, Settings/Auth */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Link to="/favourites" onClick={closeAll} className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100/80 transition-all duration-150">
+            <Link to="/saved-items" onClick={closeAll} className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100/80 transition-all duration-150">
               {FavIcon}
               <span className="text-sm">Saved</span>
             </Link>
