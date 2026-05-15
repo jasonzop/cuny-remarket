@@ -12,6 +12,7 @@ import {
   Palette,
   Shield,
   Store,
+ShoppingBag,
   UserRound,
 } from "lucide-react";
 import { useTheme, type ThemePreference } from "../Contexts/ThemeContext";
@@ -458,6 +459,15 @@ if (majorData) {
   title="Saved Items"
   description="View your saved marketplace items."
   onClick={() => navigate("/saved-items")}
+/>
+
+<SettingRow
+  icon={<ShoppingBag size={20} />}
+  title="Past Orders"
+  description="View your completed and pending purchases."
+  onClick={() =>
+    navigate("/past-orders")
+  }
 />
               <SettingRow
                 icon={<LockKeyhole size={20} />}

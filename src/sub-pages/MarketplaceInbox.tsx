@@ -13,6 +13,17 @@ type Conversation = {
   last_message_at: string;
 };
 
+type PurchaseRequest = {
+  id: string;
+  conversation_id: string;
+  listing_id: string;
+  buyer_id: string;
+  seller_id: string;
+  offered_price: number;
+  status: string;
+  created_at: string;
+};
+
 type ChatMessage = {
   id: string;
   conversation_id: string;
@@ -67,7 +78,8 @@ export default function MarketplaceInbox() {
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
-
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>([]);
+  
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [listingMap, setListingMap] = useState<Record<string, ListingMeta>>({});
@@ -119,13 +131,16 @@ export default function MarketplaceInbox() {
     });
   }, [navigate]);
 
-  useEffect(() => {
-    if (!activeConversationId) {
-      setMessages([]);
-      return;
-    }
-    loadMessages(activeConversationId);
-  }, [activeConversationId]);
+useEffect(() => {
+  if (!activeConversationId) {
+    setMessages([]);
+    setPurchaseRequests([]);
+    return;
+  }
+
+  loadMessages(activeConversationId);
+  loadPurchaseRequests(activeConversationId);
+}, [activeConversationId]);
 
   useEffect(() => {
     let active = true;
@@ -257,7 +272,20 @@ setUserMap(nextUserMap);
     setMessages((data || []) as ChatMessage[]);
     setLoadingMessages(false);
   }
+async function loadPurchaseRequests(id: string) {
+  const { data, error } = await supabase
+    .from("marketplace_purchase_requests")
+    .select("*")
+    .eq("conversation_id", id)
+    .order("created_at", { ascending: false });
 
+  if (error) {
+    console.error("Unable to load purchase requests:", error.message);
+    return;
+  }
+
+  setPurchaseRequests((data || []) as PurchaseRequest[]);
+}
   async function loadBlockState(userId: string, otherId: string) {
     const [mine, theirs] = await Promise.all([
       supabase
@@ -574,6 +602,43 @@ setUserMap(nextUserMap);
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#0c1a36]/55">
+            {purchaseRequests.map((request) => {
+  const isSeller = request.seller_id === currentUserId;
+
+  return (
+    <div
+      key={request.id}
+      className="rounded-2xl border border-green-400/30 bg-green-500/10 p-4 text-slate-100"
+    >
+      <p className="text-xs font-bold uppercase tracking-widest text-green-300">
+        {isSeller ? "Order Received" : "Purchase Request Sent"}
+      </p>
+
+      <p className="mt-2 text-lg font-black text-white">
+        ${Number(request.offered_price)}
+      </p>
+
+      <p className="mt-1 text-sm text-slate-300">
+        Status:{" "}
+        <span className="font-bold text-green-300">
+          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+        </span>
+      </p>
+
+      {isSeller && request.status === "pending" && (
+        <p className="mt-3 text-sm text-slate-300">
+          Buyer wants to purchase this item at full price.
+        </p>
+      )}
+
+      {!isSeller && request.status === "pending" && (
+        <p className="mt-3 text-sm text-slate-300">
+          Waiting for seller response.
+        </p>
+      )}
+    </div>
+  );
+})}
               {!activeConversation ? (
                 <p className="text-slate-300">Choose a conversation from the left.</p>
               ) : loadingMessages ? (

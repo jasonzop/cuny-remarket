@@ -14,6 +14,7 @@ import {
   UserX,
   Pencil,
 Heart,
+ShoppingBag,
 } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -132,6 +133,8 @@ const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [savedListingIds, setSavedListingIds] = useState<string[]>([]);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+const [buyLoading, setBuyLoading] = useState(false);
 
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -748,6 +751,119 @@ const handleCreateCategory = async () => {
     setSelectedItem(null);
     navigate(`/marketplace/inbox/${conversationId}`);
   };
+
+  const handleBuyNow = async () => {
+  if (!selectedItem || !requireSignedIn()) return;
+
+  if (currentUserId === selectedItem.user_id) {
+    setActionMessage("You cannot buy your own listing.");
+    return;
+  }
+
+  if (selectedItem.status !== "Available") {
+    setActionMessage("This item is not available right now.");
+    return;
+  }
+
+  setBuyLoading(true);
+  setActionMessage(null);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setActionMessage("Please log in first.");
+    setBuyLoading(false);
+    return;
+  }
+
+  const { data: existingConversation, error: findError } = await supabase
+    .from("marketplace_conversations")
+    .select("id")
+    .eq("listing_id", selectedItem.id)
+    .eq("buyer_id", user.id)
+    .eq("seller_id", selectedItem.user_id)
+    .maybeSingle();
+
+  if (findError) {
+    setActionMessage("Could not start purchase request: " + findError.message);
+    setBuyLoading(false);
+    return;
+  }
+
+  let conversationId = existingConversation?.id as string | undefined;
+
+  if (!conversationId) {
+    const { data: newConversation, error: conversationError } = await supabase
+      .from("marketplace_conversations")
+      .insert({
+        listing_id: selectedItem.id,
+        buyer_id: user.id,
+        seller_id: selectedItem.user_id,
+        last_message_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+
+    if (conversationError) {
+      setActionMessage("Could not create conversation: " + conversationError.message);
+      setBuyLoading(false);
+      return;
+    }
+
+    conversationId = newConversation.id;
+  }
+
+  const { error: requestError } = await supabase
+    .from("marketplace_purchase_requests")
+    .insert({
+      listing_id: selectedItem.id,
+      conversation_id: conversationId,
+      buyer_id: user.id,
+      seller_id: selectedItem.user_id,
+      offered_price: Number(selectedItem.price || 0),
+      status: "pending",
+    });
+
+  if (requestError) {
+    setActionMessage("Could not send purchase request: " + requestError.message);
+    setBuyLoading(false);
+    return;
+  }
+
+  const buyerName =
+    user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.username ||
+    user.email?.split("@")[0] ||
+    "A buyer";
+
+  await supabase.from("marketplace_messages").insert({
+    conversation_id: conversationId,
+    sender_id: user.id,
+    sender_name: buyerName,
+    body: `🛍️ Purchase Request: ${buyerName} wants to buy "${selectedItem.title}" for ${formatPrice(
+      selectedItem
+    )}.`,
+  });
+
+  await supabase
+    .from("marketplace_conversations")
+    .update({ last_message_at: new Date().toISOString() })
+    .eq("id", conversationId);
+
+  setBuyLoading(false);
+setIsBuyModalOpen(false);
+setActionMessage("Purchase request sent successfully. It was added to Past Orders.");
+fetchListings();
+
+setTimeout(() => {
+  setSelectedItem(null);
+}, 1200);
+  
+};
+
 const handleToggleSave = async () => {
   if (!selectedItem || !requireSignedIn()) return;
 
@@ -1617,6 +1733,13 @@ ${
                   >
                     <MessageCircle size={20} /> Message Seller
                   </button>
+                  <button
+  onClick={() => setIsBuyModalOpen(true)}
+  disabled={buyLoading || selectedItem.status !== "Available"}
+  className="w-full py-5 bg-green-600 text-white text-lg font-bold rounded-2xl hover:bg-green-700 shadow-xl flex items-center justify-center gap-2 disabled:opacity-60"
+>
+  <ShoppingBag size={20} /> Buy Now
+</button>
 <button
   onClick={handleToggleSave}
   className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 border border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 transition-all"
@@ -1663,6 +1786,125 @@ ${
           </div>
         </div>
       )}
+
+      {isBuyModalOpen && selectedItem && (
+  <div className="fixed inset-0 z-[94] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+    <div className="w-full max-w-lg rounded-[2rem] border border-cyan-500/20 bg-[#0b1733] shadow-2xl overflow-hidden">
+      <div
+        className="h-1.5 w-full"
+        style={{
+          background:
+            "linear-gradient(90deg,#00AAFF,#6B30FF)",
+        }}
+      />
+
+      <div className="p-7">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-black text-white">
+            Confirm Purchase Request
+          </h2>
+
+          <button
+            onClick={() =>
+              setIsBuyModalOpen(false)
+            }
+            className="p-2 rounded-full hover:bg-white/10 transition"
+          >
+            <X className="text-slate-300" />
+          </button>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-cyan-500/20 bg-[#13284d] p-5 mb-5">
+          <div className="mb-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+              Item
+            </p>
+
+            <p className="text-xl font-black text-white">
+              {selectedItem.title}
+            </p>
+          </div>
+
+          <div className="mb-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+              Price
+            </p>
+
+            <p className="text-3xl font-black text-green-400">
+              {formatPrice(selectedItem)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+              Meetup Location
+            </p>
+
+            <p className="text-base font-semibold text-slate-200">
+              {selectedItem.campus_location ||
+                "Campus meetup location not provided"}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-cyan-500/20 bg-[#13284d] p-4 mb-6">
+         <p className="text-sm text-slate-300 leading-relaxed">
+  Choose{" "}
+  <span className="font-bold text-white">
+    Buy at Full Price
+  </span>{" "}
+  if you are ready to purchase this item for the listed price.
+  <br />
+  Choose{" "}
+  <span className="font-bold text-white">
+    Negotiate
+  </span>{" "}
+  if you want to message the seller first.
+</p>
+        </div>
+
+<div className="grid grid-cols-1 gap-3">
+  <button
+    type="button"
+    onClick={handleBuyNow}
+    disabled={buyLoading}
+    className="w-full py-3 rounded-2xl text-white font-bold shadow-lg hover:opacity-90 disabled:opacity-70"
+    style={{
+      background:
+        "linear-gradient(90deg,#00AAFF,#6B30FF)",
+    }}
+  >
+    {buyLoading
+      ? "Sending..."
+      : `Buy for ${formatPrice(selectedItem)}`}
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setIsBuyModalOpen(false);
+      handleOpenMessage();
+    }}
+    disabled={actionLoading}
+    className="w-full py-3 rounded-2xl border border-cyan-500/30 bg-[#13284d] text-slate-200 font-bold hover:bg-[#17325f] transition"
+  >
+    Negotiate Price / Message Seller
+  </button>
+
+  <button
+    type="button"
+    onClick={() =>
+      setIsBuyModalOpen(false)
+    }
+    className="w-full py-3 rounded-2xl border border-slate-600 bg-transparent text-slate-300 font-bold hover:bg-white/10 transition"
+  >
+    Cancel
+  </button>
+</div>
+      </div>
+    </div>
+  </div>
+)}
 
       {isReportModalOpen && selectedItem && (
         <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">

@@ -14,6 +14,7 @@ import Layout from "./Contexts/Layout";
 import PrivacyPolicy from "./sub-pages/PrivacyPolicy";
 import MyListings from "./sub-pages/MyListings";
 import SavedItems from "./sub-pages/SavedItems";
+import PastOrders from "./sub-pages/PastOrders";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Header />
       <Layout>
         <Routes>
+          <Route path="/past-orders" element={<PastOrders />} />
           <Route path="/saved-items" element={<SavedItems />} />
           <Route path="/my-listings" element={<MyListings />} />
           <Route path="/" element={<Search />} />
