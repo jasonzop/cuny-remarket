@@ -747,121 +747,134 @@ const handleCreateCategory = async () => {
       conversationId = newConversation.id;
     }
 
-    setActionLoading(false);
-    setSelectedItem(null);
-    navigate(`/marketplace/inbox/${conversationId}`);
+    setBuyLoading(false);
+setIsBuyModalOpen(false);
+setSelectedItem(null);
+
+alert("Purchase request sent successfully! It was added to Past Orders.");
+
+fetchListings();
   };
 
-  const handleBuyNow = async () => {
+const handleBuyNow = async () => {
   if (!selectedItem || !requireSignedIn()) return;
 
-  if (currentUserId === selectedItem.user_id) {
-    setActionMessage("You cannot buy your own listing.");
-    return;
-  }
+  try {
+    setBuyLoading(true);
+    setActionMessage(null);
 
-  if (selectedItem.status !== "Available") {
-    setActionMessage("This item is not available right now.");
-    return;
-  }
-
-  setBuyLoading(true);
-  setActionMessage(null);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    setActionMessage("Please log in first.");
-    setBuyLoading(false);
-    return;
-  }
-
-  const { data: existingConversation, error: findError } = await supabase
-    .from("marketplace_conversations")
-    .select("id")
-    .eq("listing_id", selectedItem.id)
-    .eq("buyer_id", user.id)
-    .eq("seller_id", selectedItem.user_id)
-    .maybeSingle();
-
-  if (findError) {
-    setActionMessage("Could not start purchase request: " + findError.message);
-    setBuyLoading(false);
-    return;
-  }
-
-  let conversationId = existingConversation?.id as string | undefined;
-
-  if (!conversationId) {
-    const { data: newConversation, error: conversationError } = await supabase
-      .from("marketplace_conversations")
-      .insert({
-        listing_id: selectedItem.id,
-        buyer_id: user.id,
-        seller_id: selectedItem.user_id,
-        last_message_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-
-    if (conversationError) {
-      setActionMessage("Could not create conversation: " + conversationError.message);
-      setBuyLoading(false);
+    if (currentUserId === selectedItem.user_id) {
+      alert("You cannot buy your own listing.");
       return;
     }
 
-    conversationId = newConversation.id;
-  }
+    if (selectedItem.status !== "Available") {
+      alert("This item is not available right now.");
+      return;
+    }
 
-  const { error: requestError } = await supabase
-    .from("marketplace_purchase_requests")
-    .insert({
-      listing_id: selectedItem.id,
-      conversation_id: conversationId,
-      buyer_id: user.id,
-      seller_id: selectedItem.user_id,
-      offered_price: Number(selectedItem.price || 0),
-      status: "pending",
-    });
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  if (requestError) {
-    setActionMessage("Could not send purchase request: " + requestError.message);
+    if (userError || !user) {
+      alert("Please log in first.");
+      return;
+    }
+
+    let conversationId: string | undefined;
+
+    const { data: existingConversation, error: findError } = await supabase
+      .from("marketplace_conversations")
+      .select("id")
+      .eq("listing_id", selectedItem.id)
+      .eq("buyer_id", user.id)
+      .eq("seller_id", selectedItem.user_id)
+      .maybeSingle();
+
+    if (findError) {
+      alert("Could not check conversation: " + findError.message);
+      return;
+    }
+
+    conversationId = existingConversation?.id;
+
+    if (!conversationId) {
+      const { data: newConversation, error: conversationError } = await supabase
+        .from("marketplace_conversations")
+        .insert({
+          listing_id: selectedItem.id,
+          buyer_id: user.id,
+          seller_id: selectedItem.user_id,
+          last_message_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+
+      if (conversationError || !newConversation?.id) {
+        alert("Could not create conversation: " + conversationError?.message);
+        return;
+      }
+
+      conversationId = newConversation.id;
+    }
+
+    const { error: requestError } = await supabase
+      .from("marketplace_purchase_requests")
+      .insert({
+        listing_id: selectedItem.id,
+        conversation_id: conversationId,
+        buyer_id: user.id,
+        seller_id: selectedItem.user_id,
+        offered_price: Number(selectedItem.price || 0),
+        status: "pending",
+      });
+
+    if (requestError) {
+      alert("Could not create purchase request: " + requestError.message);
+      return;
+    }
+
+    const buyerName =
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      user.user_metadata?.username ||
+      user.email?.split("@")[0] ||
+      "A buyer";
+
+    const { error: messageError } = await supabase
+      .from("marketplace_messages")
+      .insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        sender_name: buyerName,
+        body: `🛍️ Purchase Request: ${buyerName} wants to buy "${selectedItem.title}" for ${formatPrice(
+          selectedItem
+        )}.`,
+      });
+
+    if (messageError) {
+      alert("Request saved, but message failed: " + messageError.message);
+    }
+
+    await supabase
+      .from("marketplace_conversations")
+      .update({ last_message_at: new Date().toISOString() })
+      .eq("id", conversationId);
+
+    setIsBuyModalOpen(false);
+    setSelectedItem(null);
+    setActionMessage(
+      "Purchase request sent successfully. It was added to Past Orders."
+    );
+
+    alert("Purchase request sent successfully! It was added to Past Orders.");
+
+    fetchListings();
+  } finally {
     setBuyLoading(false);
-    return;
   }
-
-  const buyerName =
-    user.user_metadata?.name ||
-    user.user_metadata?.full_name ||
-    user.user_metadata?.username ||
-    user.email?.split("@")[0] ||
-    "A buyer";
-
-  await supabase.from("marketplace_messages").insert({
-    conversation_id: conversationId,
-    sender_id: user.id,
-    sender_name: buyerName,
-    body: `🛍️ Purchase Request: ${buyerName} wants to buy "${selectedItem.title}" for ${formatPrice(
-      selectedItem
-    )}.`,
-  });
-
-  await supabase
-    .from("marketplace_conversations")
-    .update({ last_message_at: new Date().toISOString() })
-    .eq("id", conversationId);
-
-  setBuyLoading(false);
-setIsBuyModalOpen(false);
-setActionMessage("Purchase request sent successfully. It was added to Past Orders.");
-fetchListings();
-
-setTimeout(() => {
-  setSelectedItem(null);
-}, 1200);
-  
 };
 
 const handleToggleSave = async () => {

@@ -286,6 +286,49 @@ async function loadPurchaseRequests(id: string) {
 
   setPurchaseRequests((data || []) as PurchaseRequest[]);
 }
+
+async function updatePurchaseRequestStatus(
+  request: PurchaseRequest,
+  nextStatus: "accepted" | "declined"
+) {
+  const { error: requestError } = await supabase
+    .from("marketplace_purchase_requests")
+    .update({ status: nextStatus })
+    .eq("id", request.id);
+
+  if (requestError) {
+    alert("Could not update request: " + requestError.message);
+    return;
+  }
+
+  if (nextStatus === "accepted") {
+    const { error: listingError } = await supabase
+      .from("marketplace_listings")
+      .update({
+        status: "Reserved",
+        sold: false,
+      })
+      .eq("id", request.listing_id);
+
+    if (listingError) {
+      alert("Request accepted, but listing was not reserved: " + listingError.message);
+      return;
+    }
+  }
+
+  await supabase.from("marketplace_messages").insert({
+    conversation_id: request.conversation_id,
+    sender_id: currentUserId,
+    sender_name: currentUserName || "Seller",
+    body:
+      nextStatus === "accepted"
+        ? "✅ Purchase request accepted. This item is now reserved for pickup."
+        : "❌ Purchase request declined.",
+  });
+
+  await loadPurchaseRequests(request.conversation_id);
+  await loadMessages(request.conversation_id);
+}
   async function loadBlockState(userId: string, otherId: string) {
     const [mine, theirs] = await Promise.all([
       supabase
@@ -625,12 +668,35 @@ async function loadPurchaseRequests(id: string) {
         </span>
       </p>
 
-      {isSeller && request.status === "pending" && (
-        <p className="mt-3 text-sm text-slate-300">
-          Buyer wants to purchase this item at full price.
-        </p>
-      )}
+{isSeller && request.status === "pending" && (
+  <div className="mt-4">
+    <p className="mb-3 text-sm text-slate-300">
+      Buyer wants to purchase this item at full price.
+    </p>
 
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        type="button"
+        onClick={() =>
+          updatePurchaseRequestStatus(request, "accepted")
+        }
+        className="rounded-xl bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600"
+      >
+        Accept
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          updatePurchaseRequestStatus(request, "declined")
+        }
+        className="rounded-xl bg-red-500 px-4 py-3 text-sm font-bold text-white hover:bg-red-600"
+      >
+        Decline
+      </button>
+    </div>
+  </div>
+)}
       {!isSeller && request.status === "pending" && (
         <p className="mt-3 text-sm text-slate-300">
           Waiting for seller response.
