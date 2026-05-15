@@ -100,7 +100,12 @@ export default function Marketplace({
 
 const selectedCategoryFromURL =
   searchParams.get("category") || "all";
-
+  const searchFromURL = searchParams.get("search") || "";
+const collegeFromURL = searchParams.get("college") || "";
+const minPriceFromURL = searchParams.get("minPrice") || "";
+const maxPriceFromURL = searchParams.get("maxPrice") || "";
+console.log("MIN PRICE:", minPriceFromURL);
+console.log("MAX PRICE:", maxPriceFromURL);
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -108,7 +113,7 @@ const selectedCategoryFromURL =
   const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchFromURL);
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
   useState(selectedCategoryFromURL);
@@ -234,6 +239,26 @@ if (myListingsOnly && currentUserId) {
         `title.ilike.%${searchQuery.trim()}%,description.ilike.%${searchQuery.trim()}%,campus_location.ilike.%${searchQuery.trim()}%`
       );
     }
+    if (collegeFromURL) {
+  query = query.ilike(
+    "campus_location",
+    `%${collegeFromURL}%`
+  );
+}
+
+if (minPriceFromURL) {
+  query = query.gte(
+    "price",
+    Number(minPriceFromURL)
+  );
+}
+
+if (maxPriceFromURL) {
+  query = query.lte(
+    "price",
+    Number(maxPriceFromURL)
+  );
+}
 
 if (selectedDepartmentFilter !== "all") {
   query = query.eq(
@@ -271,7 +296,7 @@ if (selectedCategoryFilter !== "all") {
 
     if (error) console.error("Error fetching listings:", error.message);
     setLoading(false);
-    }, [
+}, [
   blockedSellerIds,
   searchQuery,
   selectedDepartmentFilter,
@@ -279,6 +304,9 @@ if (selectedCategoryFilter !== "all") {
   itemCategories,
   currentUserId,
   myListingsOnly,
+  collegeFromURL,
+  minPriceFromURL,
+  maxPriceFromURL,
 ]);
 
   useEffect(() => {
@@ -292,6 +320,9 @@ if (selectedCategoryFilter !== "all") {
     );
   }
 }, [selectedCategoryFromURL]);
+useEffect(() => {
+  setSearchQuery(searchFromURL);
+}, [searchFromURL]);
 
   useEffect(() => {
     if (selectedItem && selectedItem.latitude && selectedItem.longitude) {
@@ -1132,9 +1163,9 @@ const { error } = await supabase
                     <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
                       {item.courses?.code || "No Course"}
                     </span>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                      {item.status}
-                    </span>
+                    <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">
+  {item.campus_location?.split(" ")[0] || "CUNY"}
+</span>
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">
@@ -1625,6 +1656,9 @@ ${
                 <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-bold uppercase tracking-wider">
                   {selectedItem.status}
                 </span>
+                <span className="px-3 py-1 bg-cyan-50 text-cyan-600 rounded-full text-xs font-bold uppercase tracking-wider">
+  {selectedItem.campus_location?.split(" ")[0] || "CUNY"}
+</span>
               </div>
 
               <h2 className="text-3xl font-black text-gray-900 mb-4">

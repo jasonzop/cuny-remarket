@@ -6,7 +6,10 @@ import SearchHeading from "./search-components/SearchHeading";
 import SearchSuggestions from "./search-components/SearchSuggestions";
 import SearchActions from "./search-components/SearchActions";
 import ApplyGradientOrbs from "../SharedComponents/ApplyGradientOrbs";
-import { Link } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 const itemsPerPage = 10;
 
@@ -37,6 +40,12 @@ export const PROMO_TIERS = [
 /* ---------------- MAIN ---------------- */
 
 function Search() {
+  const navigate = useNavigate();
+const [searchInput, setSearchInput] = useState("");
+const [selectedCollege, setSelectedCollege] = useState("all");
+const [showPriceFilter, setShowPriceFilter] = useState(false);
+const [minPrice, setMinPrice] = useState("");
+const [maxPrice, setMaxPrice] = useState("");
   const { products, openPage, setOpenPage } = useSearchContext();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -65,7 +74,126 @@ function Search() {
         <div className="flex gap-5 items-start justify-center max-w-5xl mx-auto">
           <div className="flex-1 min-w-0 max-w-xl">
             <SearchHeading visible={visible} />
-            <SearchActions visible={visible} />
+<div className="flex flex-col items-center gap-4 mt-6">
+  <input
+    type="text"
+    value={searchInput}
+    onChange={(e) => setSearchInput(e.target.value)}
+    placeholder="Search books, calculators, merch..."
+    className="w-full max-w-xl rounded-2xl border border-cyan-500/20 bg-[#0b1733] px-5 py-4 text-white outline-none placeholder:text-slate-400"
+  />
+
+  <div className="flex flex-wrap justify-center gap-3">
+    <button
+onClick={() => {
+  const params = new URLSearchParams();
+
+  if (searchInput.trim()) {
+    params.set("search", searchInput.trim());
+  }
+
+  if (selectedCollege !== "all") {
+    params.set("college", selectedCollege);
+  }
+
+  if (minPrice.trim()) {
+    params.set("minPrice", minPrice.trim());
+  }
+
+  if (maxPrice.trim()) {
+    params.set("maxPrice", maxPrice.trim());
+  }
+
+  navigate(`/marketplace?${params.toString()}`);
+}}
+      className="rounded-2xl px-8 py-3 text-white font-bold"
+      style={{
+        background: "linear-gradient(90deg,#00AAFF,#6B30FF)",
+      }}
+    >
+      Search
+    </button>
+
+<select
+  value={selectedCollege}
+  onChange={(e) =>
+    setSelectedCollege(e.target.value)
+  }
+  className="rounded-2xl border border-cyan-500/20 bg-[#0b1733] px-5 py-3 text-white font-bold outline-none"
+>
+  <option value="all">
+    All Colleges
+  </option>
+
+  <option value="Hunter">
+    Hunter College
+  </option>
+
+  <option value="Baruch">
+    Baruch College
+  </option>
+
+  <option value="City">
+    City College
+  </option>
+
+  <option value="Queens">
+    Queens College
+  </option>
+
+  <option value="Brooklyn">
+    Brooklyn College
+  </option>
+
+  <option value="John Jay">
+    John Jay College
+  </option>
+
+  <option value="Lehman">
+    Lehman College
+  </option>
+
+  <option value="Staten Island">
+    College of Staten Island
+  </option>
+
+  <option value="NYC College of Technology">
+    NYC College of Technology
+  </option>
+</select>
+
+<button
+  type="button"
+  onClick={() => setShowPriceFilter((prev) => !prev)}
+  className="rounded-2xl px-6 py-3 text-white font-bold"
+  style={{
+    background: "linear-gradient(90deg,#2563eb,#4f46e5)",
+  }}
+>
+  Set Price
+</button>
+  </div>
+
+  {showPriceFilter && (
+  <div className="flex flex-wrap justify-center gap-3">
+    <input
+      type="number"
+      value={minPrice}
+      onChange={(e) => setMinPrice(e.target.value)}
+      placeholder="Min price"
+      className="w-36 rounded-2xl border border-cyan-500/20 bg-[#0b1733] px-4 py-3 text-white outline-none placeholder:text-slate-400"
+    />
+
+    <input
+      type="number"
+      value={maxPrice}
+      onChange={(e) => setMaxPrice(e.target.value)}
+      placeholder="Max price"
+      className="w-36 rounded-2xl border border-cyan-500/20 bg-[#0b1733] px-4 py-3 text-white outline-none placeholder:text-slate-400"
+    />
+  </div>
+)}
+</div>
             <SearchSuggestions visible={visible} />
 
             {hasResults && (
