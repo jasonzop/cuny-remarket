@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Header from "./Header";
 import Search from "./sub-pages/Search/Search";
-import WishList from "./sub-pages/WishList/WishList";
 import WhatIsVerifind from "./sub-pages/WhatIsVerifind";
 import Login from "./sub-pages/Login";
 import SignUp from "./sub-pages/SignUp";
@@ -26,7 +25,6 @@ function App() {
           <Route path="/my-listings" element={<MyListings />} />
           <Route path="/" element={<Search />} />
           <Route path="/search" element={<Search />} />
-          <Route path="/wish-list" element={<WishList />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/messages" element={<MarketplaceInbox />} />
           <Route

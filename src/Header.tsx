@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../supabase-client";
 
-type DropID = "marketplace" | "search" | "wishlist" | "about" | null;
+type DropID = "marketplace" | "search" | "about" | null;
 
 export default function Header() {
   const { pathname } = useLocation();
@@ -194,17 +194,6 @@ const catIcons: Record<string, React.ReactNode> = {
       </div>
     );
 
-    if (id === "wishlist") return (
-      <div className="p-4 w-56">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Wish List</p>
-        <p className="text-xs text-gray-500 leading-relaxed mb-3">Set target prices — we track live prices and flag drops.</p>
-        <div className="flex flex-col gap-1.5">
-          <Link to="/wish-list" onClick={closeAll} className="flex items-center justify-center py-2 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD }}>My Wish List</Link>
-          <Link to="/favourites" onClick={closeAll} className="flex items-center justify-center py-2 rounded-lg text-xs font-medium text-gray-600 transition-all duration-150 hover:bg-gray-100" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>Saved / Favourites</Link>
-        </div>
-      </div>
-    );
-
     if (id === "about") return (
       <div className="p-4 w-56">
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">About CUNY ReMarket?</p>
@@ -218,7 +207,6 @@ const catIcons: Record<string, React.ReactNode> = {
 
   const navLinks = [
     { to: "/search",           label: "Search",            dropID: "search"      as DropID },
-    { to: "/wish-list",        label: "Wish List",         dropID: "wishlist"    as DropID },
     { to: "/marketplace",      label: "Marketplace",       dropID: "marketplace" as DropID },
     ...(loggedIn ? [{ to: "/messages", label: "Messages", dropID: null as DropID }] : []),
     { to: "/what-is-cuny-remarket", label: "About CUNY ReMarket?", dropID: "about"       as DropID },
@@ -393,8 +381,7 @@ const catIcons: Record<string, React.ReactNode> = {
         {[
           { to: "/marketplace", label: "Market"  },
           { to: "/search",      label: "Search"  },
-          { to: "/wish-list",   label: "Wishes"  },
-          { to: "/favourites",  label: "Saved"   },
+          { to: "/saved-items", label: "Saved" },
           { to: "/cart",        label: "Cart"    },
           ...(loggedIn ? [{ to: "/messages", label: "Messages" }, { to: "/profile", label: "Profile" }] : []),
         ].map((item) => {
