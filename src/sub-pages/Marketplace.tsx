@@ -53,6 +53,7 @@ item_categories?: ItemCategory | null;
   latitude: number | null;
   longitude: number | null;
   seller_name: string | null;
+seller_avatar_url: string | null;
   department_id: number | null;
   course_id: number | null;
   departments?: Department | null;
@@ -514,10 +515,22 @@ const handleCreateCategory = async () => {
         ? 0
         : parseFloat(formData.price.replace(/[^0-9.]/g, ""));
 
+        const sellerName =
+  user.user_metadata?.name ||
+  user.user_metadata?.full_name ||
+  user.user_metadata?.username ||
+  user.email?.split("@")[0] ||
+  "Unknown Seller";
+
+  const sellerAvatar =
+  user.user_metadata?.avatar_url || null;
+
     const payload = {
       item_category_id: Number(formData.item_category_id),
       user_id: user.id,
-      title: formData.title.trim(),
+  seller_name: sellerName,
+  seller_avatar_url: sellerAvatar,
+  title: formData.title.trim(),
       description: formData.description.trim(),
       price: numericPrice,
       is_free: formData.is_free,
@@ -1459,9 +1472,17 @@ ${
                 </div>
 
                 <div className="pt-6 border-t border-gray-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                    {selectedItem.seller_name?.[0]?.toUpperCase() || "U"}
-                  </div>
+                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+  {selectedItem.seller_avatar_url ? (
+    <img
+      src={selectedItem.seller_avatar_url}
+      alt="Seller"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    selectedItem.seller_name?.[0]?.toUpperCase() || "U"
+  )}
+</div>
                   <div>
                     <p className="text-xs text-gray-400 uppercase font-semibold tracking-wider">
                       Listed By
