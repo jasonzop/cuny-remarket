@@ -1163,19 +1163,40 @@ const { error } = await supabase
           </div>
         )}
 
-        <div className="mb-12 flex flex-col gap-4 max-w-6xl mx-auto">
-          <div className="relative w-full max-w-xl mx-auto group">
-            <Search className="marketplace-search-icon absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search listings..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="marketplace-search-input w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all"
-            />
-          </div>
+<div className="mb-12 flex flex-col gap-4 max-w-7xl mx-auto">
 
-<div className="flex gap-4 justify-center flex-wrap">
+  {/* Search + Post Item */}
+  <div className="flex items-center justify-center gap-3 flex-wrap">
+    <div className="relative flex-1 max-w-2xl group">
+      <Search className="marketplace-search-icon absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+
+      <input
+        type="text"
+        placeholder="Search listings..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="marketplace-search-input w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+      />
+    </div>
+
+    {loggedIn && (
+      <button
+        onClick={openCreateModal}
+        className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
+        style={{
+          background:
+            "linear-gradient(90deg,#00AAFF,#6B30FF)",
+        }}
+      >
+        <Plus size={20} />
+        Post Item
+      </button>
+    )}
+  </div>
+
+  {/* Filters */}
+  <div className="flex gap-3 justify-center items-center flex-wrap max-w-7xl mx-auto">
+
 {/* College Filter */}
 <div className="relative">
   <select
@@ -1187,7 +1208,7 @@ const { error } = await supabase
         e.target.value
       )
     }
-    className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+    className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
   >
     <option value="all">
       All Colleges
@@ -1218,7 +1239,7 @@ const { error } = await supabase
           e.target.value
         )
       }
-      className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+      className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
     >
       <option value="all">
         All Departments
@@ -1249,7 +1270,7 @@ value={selectedCourseFilter}
 onChange={(e) =>
   setSelectedCourseFilter(e.target.value)
 }
-      className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+      className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
     >
       <option value="all">
         All Courses
@@ -1290,7 +1311,7 @@ onChange={(e) =>
   onChange={(e) =>
     setMinPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
   }
-  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32"
+  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 />
 
 <input
@@ -1302,8 +1323,9 @@ onChange={(e) =>
   onChange={(e) =>
     setMaxPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
   }
-  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32"
+  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 />
+
           </div>
         </div>
 
