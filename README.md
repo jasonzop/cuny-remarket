@@ -1,75 +1,239 @@
-# VeriFind
+# CUNY ReMarket
 
-**VeriFind** is a centralized shopping platform that aggregates product listings from multiple online and in-store retailers into a single, unified interface. It helps users make informed purchasing decisions by providing real-time price comparisons, reviews, retailer trust scores, smart filtering, wishlist tracking, and direct purchase links.
+A student-exclusive marketplace platform designed for CUNY students to safely buy, sell, and exchange items within their college community.
+
+CUNY ReMarket helps students save money, reduce waste, and connect with verified peers through a trusted marketplace limited to CUNY email accounts.
+
+---
+
+## Team Members
+
+- Jason Parmar  
+- Kevin Tan  
+- Bilal Bennour  
+- Sammi Mushtaq  
+- Omar Saleh  
 
 ---
 
 ## Features
 
-- **Instant Price Comparison:** Compare prices across multiple retailers instantly.  
-- **Product Ratings & Reviews:** Access ratings and reviews to make informed decisions.  
-- **Retailer Trust Scores:** Check retailer reliability before purchasing.  
-- **Smart Filtering & Sorting:** Filter by price, rating, or retailer; sort to find the best deals.  
-- **Wishlist Tracking:** Track products and get notified of price drops.  
-- **Direct Purchase Links:** Quickly navigate to the retailer to complete the purchase.  
+### Authentication & Verification
+- CUNY email-only login and registration
+- Verified student accounts using `@login.cuny.edu`
+- Secure authentication using Supabase Auth
 
----
+### Marketplace Listings
+Users can create listings with:
 
-## Team Members & Contributions
-name/role/contributions
+- Category
+- Title
+- Description
+- Price
+- Condition
+- Department
+- Course
+- Campus location
+- Images
 
-| **Jack Zheng**        | Wishlist Feature         | Designed and implemented the wishlist system; integrated live pricing & Google Shopping review links; built UI for tracking price drops and availability. |
-| **Chris Happel**      | Smart Search             | Developed search functionality using SerpAPI; enabled instant product lookup with price and rating aggregation; implemented robust fallback/error handling. |
-| **Axel Mizerovskiy**  | Filtering & Sorting      | Created dynamic filtering and sorting options; enhanced usability for fast discovery of preferred products. |
-| **Bilal Bennour**     | API Integration          | Built and maintained backend server for product/search APIs; connected Supabase database; ensured seamless communication between frontend, backend, and SerpAPI. |
+Listings can be marked as:
+
+- Available
+- Reserved
+- Sold
+
+Users can also list free items.
+
+### Search & Filtering
+Search marketplace listings by:
+
+- Keywords
+- College/Campus
+- Price range
+- Category
+- Department
+- Course
+
+### Saved Items
+- Save favorite listings
+- Dedicated Saved Items page
+- Quick access through the navigation bar
+
+### Messaging System
+- Buyer-to-seller messaging
+- Inbox system
+- Seller information shown in chats
+
+### User Profiles
+Users can customize profiles with:
+
+- Profile picture
+- Major selection
+- Editable profile information
+
+### Smart Searchable Dropdowns
+Users can:
+
+- Search existing majors
+- Search categories
+- Search departments and courses
+- Create new entries if they do not already exist
+
+### Docker Support
+- Full Docker containerization
+- Easy local deployment
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** React, TypeScript, Tailwind CSS  
-- **Backend:** Node.js, Express, Axios  
-- **Database:** Supabase  
-- **APIs:** SerpAPI (Google Shopping & Amazon)  
+### Frontend
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+
+### Backend
+- Node.js
+- Express.js
+
+### Database & Authentication
+- PostgreSQL
+- Supabase
+- Supabase Authentication
+
+### Deployment
+- Render
+- Docker Hub
 
 ---
 
-## Getting Started
+## System Architecture
 
-### Prerequisites
-* **Node.js** (v18 or higher recommended)
-* **npm** or **yarn**
+CUNY ReMarket follows a full-stack client-server architecture:
 
-### Installation & Setup
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/chappel44/CSCI-499-Project.git
-cd CSCI-499-Project
+```text
+Frontend (React + Vite)
+          ↓
+REST API (Express.js)
+          ↓
+Supabase PostgreSQL Database
 ```
 
-2. **Install dependencies:**
-```bash 
+Authentication is managed through Supabase while marketplace data, user profiles, listings, and messaging are stored in PostgreSQL.
+
+---
+
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR-USERNAME/cuny-remarket.git
+cd cuny-remarket
+```
+
+### 2. Install Dependencies
+
+Install project dependencies:
+
+```bash
 npm install
 ```
 
-3. **Create Environment Variables:**
-Create a file named `.env` in the root directory and add the following:
+---
+
+## Environment Variables
+
+Create a `.env` file in the root directory:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-SERPAPI_KEY=your_serpapi_api_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SERPAPI_KEY=your_key_if_used
 ```
 
-4. **Start the Backend Server:**
-```bash
-node server.js
-```
+---
 
-5. **Start the Frontend:**
+## Running the Application
+
+### Run Development Server
+
 ```bash
 npm run dev
 ```
 
-> **Note:** Vite will provide a local link in your terminal (usually http://localhost:5173).
+Frontend runs on:
+
+```text
+http://localhost:5173
+```
+
+Backend runs on:
+
+```text
+http://localhost:3001
+```
+
+---
+
+## Docker Setup
+
+Build Docker image:
+
+```bash
+docker build -t cuny-remarket .
+```
+
+Run container:
+
+```bash
+docker run --name CUNYReMarket \
+--env-file .env \
+-p 3001:3001 \
+-p 5173:5173 \
+jasonparmar10/cuny-remarket:latest
+```
+
+Open application:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## Deployment
+
+### Live Backend
+
+https://cuny-remarket-backend.onrender.com
+
+Frontend and backend are deployed using Render.
+
+---
+
+## Future Improvements
+
+- Real-time messaging notifications
+- Improved recommendation system
+- Better mobile responsiveness
+- Campus-specific feeds
+- Smarter search functionality
+- AI-powered listing recommendations
+
+---
+
+## Project Goal
+
+CUNY ReMarket was created to provide a secure and affordable marketplace exclusively for CUNY students.
+
+Many students struggle with expensive textbooks, dorm essentials, electronics, and school supplies. Our platform allows students to buy and sell second-hand items within a trusted academic community, helping reduce costs and waste.
+
+---
+
+## License
+
+This project was developed for academic purposes as part of a CUNY coursework final project.
