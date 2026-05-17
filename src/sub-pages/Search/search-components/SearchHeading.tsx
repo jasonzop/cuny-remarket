@@ -1,5 +1,4 @@
 import GreetUser from "../../SharedComponents/GreetUser";
-import ComingSoonCards from "./ComingSoonCards";
 import { motion } from "framer-motion";
 
 interface SearchHeadingProps {

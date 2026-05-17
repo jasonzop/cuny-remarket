@@ -24,16 +24,7 @@ type ItemCategory = {
   name: string;
 };
 
-type Major = {
-  id: number;
-  name: string;
-};
 
-type College = {
-  id: number;
-  name: string;
-  code: string;
-};
 
 type Department = {
   id: number;
@@ -120,14 +111,12 @@ console.log("MAX PRICE:", maxPriceFromURL);
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [majors, setMajors] = useState<Major[]>([]);
 
 const [
   selectedCollegeFilter,
   setSelectedCollegeFilter,
 ] = useState("all");
-const [selectedMajorFilter, setSelectedMajorFilter] =
-  useState("all");
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -224,19 +213,6 @@ const fetchItemCategories = useCallback(async () => {
 
 
 
-const fetchMajors = useCallback(async () => {
-  const { data, error } = await supabase
-    .from("majors")
-    .select("*")
-    .order("name");
-
-  if (error) {
-    console.error("Error fetching majors:", error.message);
-  } else {
-    setMajors(data ?? []);
-  }
-}, []);
-
 
   const fetchDepartmentsAndCourses = useCallback(async () => {
     const { data: departmentData, error: departmentError } = await supabase
@@ -300,12 +276,7 @@ if (maxPriceFromURL) {
   );
 }
 
-if (selectedMajorFilter !== "all") {
-  query = query.eq(
-    "major_id",
-    Number(selectedMajorFilter)
-  );
-}
+
 if (selectedCollegeFilter !== "all") {
   query = query.ilike(
     "campus_location",
@@ -371,7 +342,6 @@ if (selectedCategoryFilter !== "all") {
   selectedCourseFilter,
   minPriceFilter,
 maxPriceFilter,
-  selectedMajorFilter,
   selectedCategoryFilter,
   itemCategories,
   currentUserId,
@@ -384,10 +354,8 @@ maxPriceFilter,
 useEffect(() => {
   fetchDepartmentsAndCourses();
   fetchItemCategories();
-  fetchMajors();
 }, [
   fetchDepartmentsAndCourses,
-  fetchMajors,
 ]);
   useEffect(() => {
   if (selectedCategoryFromURL) {
@@ -638,7 +606,6 @@ const handleCreateCategory = async () => {
     setShowCourseDropdown(false);
     fetchDepartmentsAndCourses();
     fetchItemCategories();
-    fetchMajors();
   };
 
   const handlePostItem = async (e: React.FormEvent) => {
