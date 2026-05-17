@@ -1176,7 +1176,10 @@ if (aiData.department) {
   setSearchQuery(searchQuery);
 }
 console.log("AI SEARCH:", aiData);
-alert(JSON.stringify(aiData, null, 2));
+alert(
+  "AI understood your search:\n\n" +
+  JSON.stringify(aiData, null, 2)
+);
   } catch (error) {
     console.error(
       "AI Search failed",

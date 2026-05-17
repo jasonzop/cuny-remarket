@@ -309,8 +309,54 @@ app.post("/api/ai-search", async (req, res) => {
       });
     }
 
-    const prompt = `
+const prompt = `
 You are an AI marketplace search assistant for CUNY ReMarket.
+
+Your job is to infer student intent.
+
+Examples:
+
+"cs textbooks"
+→ {
+  "department": "Computer Science",
+  "category": "Textbooks"
+}
+
+"math books"
+→ {
+  "department": "Mathematics",
+  "category": "Textbooks"
+}
+
+"psych notes"
+→ {
+  "department": "Psychology",
+  "category": "Study Materials"
+}
+
+"hunter merch"
+→ {
+  "college": "Hunter",
+  "category": "Merch"
+}
+
+"calc book under 50"
+→ {
+  "department": "Mathematics",
+  "category": "Textbooks",
+  "maxPrice": 50
+}
+
+Infer abbreviations:
+- cs = Computer Science
+- comp sci = Computer Science
+- math = Mathematics
+- psych = Psychology
+- econ = Economics
+- bio = Biology
+- chem = Chemistry
+
+Return ONLY valid JSON.
 
 Convert the student's search into marketplace search filters.
 
