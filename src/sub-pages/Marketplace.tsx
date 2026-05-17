@@ -133,6 +133,8 @@ const [selectedMajorFilter, setSelectedMajorFilter] =
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState(searchFromURL);
+  const [aiSearching, setAiSearching] =
+  useState(false);
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
   const [selectedCourseFilter, setSelectedCourseFilter] = useState("all");
   const [minPriceFilter, setMinPriceFilter] = useState("");
@@ -1115,6 +1117,78 @@ const { error } = await supabase
 
   const formatPrice = (item: MarketplaceListing) =>
     item.is_free || Number(item.price) === 0 ? "Free" : `$${Number(item.price)}`;
+  const handleAISearch = async () => {
+  if (!searchQuery.trim()) return;
+
+  try {
+    setAiSearching(true);
+
+    const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/api/ai-search`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          query: searchQuery,
+        }),
+      }
+    );
+
+    const aiData =
+      await response.json();
+
+    console.log(
+      "AI SEARCH:",
+      aiData
+    );
+
+    if (aiData.department) {
+      const matchingDepartment =
+        departments.find(
+          (department) =>
+            department.name
+              .toLowerCase()
+              .includes(
+                aiData.department.toLowerCase()
+              )
+        );
+
+      if (matchingDepartment) {
+        setSelectedDepartmentFilter(
+          String(
+            matchingDepartment.id
+          )
+        );
+      }
+    }
+
+    if (aiData.college) {
+      setSelectedCollegeFilter(
+        aiData.college
+      );
+    }
+if (aiData.department) {
+  setSearchQuery("");
+} else {
+  setSearchQuery(searchQuery);
+}
+console.log("AI SEARCH:", aiData);
+alert(JSON.stringify(aiData, null, 2));
+  } catch (error) {
+    console.error(
+      "AI Search failed",
+      error
+    );
+    alert(
+      "AI search failed."
+    );
+  } finally {
+    setAiSearching(false);
+  }
+};
 
   const formPriceLabel = formData.is_free ? "Free" : "Price";
 
@@ -1197,7 +1271,20 @@ const { error } = await supabase
         className="marketplace-search-input w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all"
       />
     </div>
-
+<button
+  onClick={handleAISearch}
+  disabled={aiSearching}
+  className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
+  style={{
+    background:
+      "linear-gradient(90deg,#06b6d4,#2563eb)",
+  }}
+>
+  ✨
+  {aiSearching
+    ? "Thinking..."
+    : "AI Search"}
+</button>
     {loggedIn && (
       <button
         onClick={openCreateModal}

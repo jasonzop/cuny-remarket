@@ -4,7 +4,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 import { createClient } from "@supabase/supabase-js";
-
+import { GoogleGenerativeAI } from "@google/generative-ai";
 function normalizeWalmart(item) {
   return {
     product_id: item.product_id ?? item.us_item_id,
@@ -99,6 +99,12 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey);
 const app = express();
 const PORT = 3001;
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const geminiModel = genAI.getGenerativeModel({
+  model: "gemini-flash-lite-latest"
+});
 
 const engineConfig = (keyword) => ({
   amazon: {
@@ -293,7 +299,58 @@ app.get("/api/serp-usage", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch usage" });
   }
 });
+app.post("/api/ai-search", async (req, res) => {
+  try {
+    const { query } = req.body;
 
+    if (!query) {
+      return res.status(400).json({
+        error: "Missing query",
+      });
+    }
+
+    const prompt = `
+You are an AI marketplace search assistant for CUNY ReMarket.
+
+Convert the student's search into marketplace search filters.
+
+Return ONLY valid JSON.
+
+Example:
+
+{
+  "keywords": ["computer science", "csci", "textbook"],
+  "college": "Hunter",
+  "department": "Computer Science",
+  "category": "Textbooks",
+  "maxPrice": 40
+}
+
+User search:
+${query}
+`;
+
+    const result = await geminiModel.generateContent(prompt);
+
+    const text = result.response.text();
+
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+
+    res.json(parsed);
+  } catch (error) {
+    console.error("AI SEARCH ERROR:", error);
+
+res.status(500).json({
+  error: "AI search failed",
+  details: error.message,
+});
+  }
+});
 app.listen(PORT, () =>
   console.log(`Backend running at http://localhost:${PORT}`)
 );
