@@ -1153,9 +1153,28 @@ const { error } = await supabase
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto w-full">
-        <h1 className="marketplace-title text-4xl font-black mb-8 text-center text-gray-900 tracking-tight">
-          {myListingsOnly ? "My Listings" : "Marketplace"}
-        </h1>
+{myListingsOnly ? (
+  <h1 className="marketplace-title text-4xl font-black mb-8 text-center text-gray-900 tracking-tight">
+    My Listings
+  </h1>
+) : (
+  <div className="text-center mb-10">
+    <h1
+      className="text-5xl md:text-6xl font-black mb-3 leading-tight"
+      style={{
+        color: "#60a5fa",
+        textShadow:
+          "0 0 25px rgba(59,130,246,.45)",
+      }}
+    >
+      CUNY ReMarket Search
+    </h1>
+
+    <p className="text-slate-300 text-base font-semibold">
+      Buy, sell, and discover verified student listings across CUNY campuses.
+    </p>
+  </div>
+)}
 
         {actionMessage && (
           <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-blue-100 bg-white/70 px-4 py-3 text-sm font-semibold text-gray-600 shadow-sm backdrop-blur-md">

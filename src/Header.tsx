@@ -206,11 +206,16 @@ const catIcons: Record<string, React.ReactNode> = {
   };
 
   const navLinks = [
-    { to: "/search",           label: "Search",            dropID: "search"      as DropID },
-    { to: "/marketplace",      label: "Marketplace",       dropID: "marketplace" as DropID },
-    ...(loggedIn ? [{ to: "/messages", label: "Messages", dropID: null as DropID }] : []),
-    { to: "/what-is-cuny-remarket", label: "About CUNY ReMarket?", dropID: "about"       as DropID },
-  ];
+  { to: "/search", label: "Discover", dropID: "search" as DropID },
+  {
+    to: "/marketplace",
+    label: "CUNY ReMarket Search",
+    dropID: "marketplace" as DropID,
+  },
+  { to: "/messages", label: "Messages", dropID: "messages" as DropID },
+  { to: "/what-is-cuny-remarket", label: "About CUNY ReMarket?", dropID: "about" as DropID },
+];
+
 
   const activeProfileLabel = headerUsername || "Profile";
   const profileInitial = activeProfileLabel.charAt(0).toUpperCase();

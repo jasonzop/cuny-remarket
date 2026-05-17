@@ -30,14 +30,13 @@ export default function SearchHeading({
     textShadow: "0 0 25px rgba(59,130,246,.45)",
   }}
 >
-  CUNY ReMarket Search
+  Discover For You
 </motion.h1>
 
       <p className="search-subtitle text-gray-400 text-sm font-medium max-w-md">
-        Buy, sell, and discover verified student listings across CUNY campuses.
+        Personalized recommendations, campus listings, and student essentials across CUNY
       </p>
 
-      <ComingSoonCards />
     </div>
   );
 }
