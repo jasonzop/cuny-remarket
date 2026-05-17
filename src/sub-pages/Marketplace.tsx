@@ -24,6 +24,17 @@ type ItemCategory = {
   name: string;
 };
 
+type Major = {
+  id: number;
+  name: string;
+};
+
+type College = {
+  id: number;
+  name: string;
+  code: string;
+};
+
 type Department = {
   id: number;
   name: string;
@@ -109,12 +120,23 @@ console.log("MAX PRICE:", maxPriceFromURL);
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [majors, setMajors] = useState<Major[]>([]);
+
+const [
+  selectedCollegeFilter,
+  setSelectedCollegeFilter,
+] = useState("all");
+const [selectedMajorFilter, setSelectedMajorFilter] =
+  useState("all");
   const [courses, setCourses] = useState<Course[]>([]);
   const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState(searchFromURL);
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState("all");
+  const [minPriceFilter, setMinPriceFilter] = useState("");
+const [maxPriceFilter, setMaxPriceFilter] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
   useState(selectedCategoryFromURL);
 
@@ -198,6 +220,22 @@ const fetchItemCategories = useCallback(async () => {
   }
 }, []);
 
+
+
+const fetchMajors = useCallback(async () => {
+  const { data, error } = await supabase
+    .from("majors")
+    .select("*")
+    .order("name");
+
+  if (error) {
+    console.error("Error fetching majors:", error.message);
+  } else {
+    setMajors(data ?? []);
+  }
+}, []);
+
+
   const fetchDepartmentsAndCourses = useCallback(async () => {
     const { data: departmentData, error: departmentError } = await supabase
       .from("departments")
@@ -260,10 +298,37 @@ if (maxPriceFromURL) {
   );
 }
 
+if (selectedMajorFilter !== "all") {
+  query = query.eq(
+    "major_id",
+    Number(selectedMajorFilter)
+  );
+}
+if (selectedCollegeFilter !== "all") {
+  query = query.ilike(
+    "campus_location",
+    `%${selectedCollegeFilter}%`
+  );
+}
 if (selectedDepartmentFilter !== "all") {
   query = query.eq(
     "department_id",
     Number(selectedDepartmentFilter)
+  );
+}
+
+if (minPriceFilter !== "") {
+  query = query.gte("price", Number(minPriceFilter));
+}
+
+if (maxPriceFilter !== "") {
+  query = query.lte("price", Number(maxPriceFilter));
+}
+
+if (selectedCourseFilter !== "all") {
+  query = query.eq(
+    "course_id",
+    Number(selectedCourseFilter)
   );
 }
 
@@ -299,7 +364,12 @@ if (selectedCategoryFilter !== "all") {
 }, [
   blockedSellerIds,
   searchQuery,
+  selectedCollegeFilter,
   selectedDepartmentFilter,
+  selectedCourseFilter,
+  minPriceFilter,
+maxPriceFilter,
+  selectedMajorFilter,
   selectedCategoryFilter,
   itemCategories,
   currentUserId,
@@ -309,10 +379,14 @@ if (selectedCategoryFilter !== "all") {
   maxPriceFromURL,
 ]);
 
-  useEffect(() => {
-    fetchDepartmentsAndCourses();
-    fetchItemCategories();
-  }, [fetchDepartmentsAndCourses]);
+useEffect(() => {
+  fetchDepartmentsAndCourses();
+  fetchItemCategories();
+  fetchMajors();
+}, [
+  fetchDepartmentsAndCourses,
+  fetchMajors,
+]);
   useEffect(() => {
   if (selectedCategoryFromURL) {
     setSelectedCategoryFilter(
@@ -562,6 +636,7 @@ const handleCreateCategory = async () => {
     setShowCourseDropdown(false);
     fetchDepartmentsAndCourses();
     fetchItemCategories();
+    fetchMajors();
   };
 
   const handlePostItem = async (e: React.FormEvent) => {
@@ -587,7 +662,7 @@ const handleCreateCategory = async () => {
       ? 0
       : formData.price === ""
         ? 0
-        : parseFloat(formData.price.replace(/[^0-9.]/g, ""));
+        : parseInt(formData.price.replace(/[^0-9]/g, "")) || 0;
 
         const sellerName =
   user.user_metadata?.name ||
@@ -1088,8 +1163,8 @@ const { error } = await supabase
           </div>
         )}
 
-        <div className="mb-12 flex flex-col md:flex-row gap-4 max-w-3xl mx-auto">
-          <div className="relative flex-1 group">
+        <div className="mb-12 flex flex-col gap-4 max-w-6xl mx-auto">
+          <div className="relative w-full max-w-xl mx-auto group">
             <Search className="marketplace-search-icon absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="text"
@@ -1100,35 +1175,135 @@ const { error } = await supabase
             />
           </div>
 
-          <div className="flex gap-4 justify-center">
-            <div className="relative">
-              <select
-                value={selectedDepartmentFilter}
-                onChange={(e) => setSelectedDepartmentFilter(e.target.value)}
-                className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
-              >
-                <option value="all">All Departments</option>
-                {departments.map((department) => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
-              </select>
-              <Filter
-                size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-              />
-            </div>
+<div className="flex gap-4 justify-center flex-wrap">
+{/* College Filter */}
+<div className="relative">
+  <select
+    value={
+      selectedCollegeFilter
+    }
+    onChange={(e) =>
+      setSelectedCollegeFilter(
+        e.target.value
+      )
+    }
+    className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+  >
+    <option value="all">
+      All Colleges
+    </option>
 
-            {loggedIn && (
-              <button
-                onClick={openCreateModal}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
-                style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
-              >
-                <Plus size={20} /> Post Item
-              </button>
-            )}
+<option value="Hunter">Hunter College</option>
+<option value="Baruch">Baruch College</option>
+<option value="City">City College</option>
+<option value="Queens">Queens College</option>
+<option value="Brooklyn">Brooklyn College</option>
+<option value="John Jay">John Jay College</option>
+<option value="Lehman">Lehman College</option>
+<option value="Staten Island">College of Staten Island</option>
+<option value="NYC College of Technology">NYC College of Technology</option>
+  </select>
+
+  <Filter
+    size={16}
+    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+  />
+</div>
+  {/* Department Filter */}
+  <div className="relative">
+    <select
+      value={selectedDepartmentFilter}
+      onChange={(e) =>
+        setSelectedDepartmentFilter(
+          e.target.value
+        )
+      }
+      className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+    >
+      <option value="all">
+        All Departments
+      </option>
+
+      {departments.map(
+        (department) => (
+          <option
+            key={department.id}
+            value={department.id}
+          >
+            {department.name}
+          </option>
+        )
+      )}
+    </select>
+
+    <Filter
+      size={16}
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+    />
+  </div>
+
+  {/* Course Filter */}
+  <div className="relative">
+    <select
+value={selectedCourseFilter}
+onChange={(e) =>
+  setSelectedCourseFilter(e.target.value)
+}
+      className="marketplace-secondary-button flex items-center justify-center gap-2 px-10 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
+    >
+      <option value="all">
+        All Courses
+      </option>
+
+      {courses
+        .filter(
+          (course) =>
+            selectedDepartmentFilter ===
+              "all" ||
+            String(
+              course.department_id
+            ) ===
+              selectedDepartmentFilter
+        )
+        .map((course) => (
+          <option
+            key={course.id}
+            value={course.id}
+          >
+            {course.code}
+          </option>
+        ))}
+    </select>
+
+    <Filter
+      size={16}
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+    />
+  </div>
+
+  <input
+  type="number"
+  min="0"
+  step="1"
+  placeholder="Min $"
+  value={minPriceFilter}
+  onChange={(e) =>
+    setMinPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
+  }
+  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32"
+/>
+
+<input
+  type="number"
+  min="0"
+  step="1"
+  placeholder="Max $"
+  value={maxPriceFilter}
+  onChange={(e) =>
+    setMaxPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
+  }
+  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32"
+/>
           </div>
         </div>
 
@@ -1300,14 +1475,18 @@ const { error } = await supabase
                     <input
                       required={!formData.is_free}
                       disabled={formData.is_free}
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="marketplace-form-input w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none disabled:opacity-50"
-                      value={formData.price}
-                      onChange={(e) =>
-                        setFormData({ ...formData, price: e.target.value })
-                      }
+type="number"
+step="1"
+min="0"
+placeholder="0"
+className="marketplace-form-input w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none disabled:opacity-50"
+value={formData.price}
+onChange={(e) =>
+  setFormData({
+    ...formData,
+    price: e.target.value.replace(/[^0-9]/g, ""),
+  })
+}
                     />
                   </div>
 
