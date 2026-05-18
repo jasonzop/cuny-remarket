@@ -1,7 +1,7 @@
 ﻿/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, ShieldAlert, UserX, X } from "lucide-react";
+import { ArrowLeft, Phone, Search, Send, ShieldAlert, UserX, Video, X } from "lucide-react";
 import { supabase } from "../../supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -36,6 +36,8 @@ type ChatMessage = {
 type ListingMeta = {
   id: string;
   title: string;
+  price?: number;
+  images?: string[] | null;
 };
 
 type UserMeta = {
@@ -62,14 +64,30 @@ function looksLikeMissingSafetyTables(message?: string) {
   );
 }
 
-function formatMessageTime(timestamp: string) {
+
+function formatShortTime(timestamp: string) {
   const date = new Date(timestamp);
-  return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  if (isToday) return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (isYesterday) return "Yesterday";
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return days[date.getDay()];
+}
+
+function AvatarCircle({ name, size = 40, active = false }: { name: string; size?: number; active?: boolean }) {
+  const initial = name.charAt(0).toUpperCase();
+  return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
+      <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: active ? "#1e3a5f" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.38, fontWeight: 700, color: active ? "#ffffff" : "#1e3a5f" }}>
+        {initial}
+      </div>
+      <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", backgroundColor: "#22c55e", border: "2px solid #ffffff" }} />
+    </div>
+  );
 }
 
 export default function MarketplaceInbox() {
@@ -226,7 +244,7 @@ const [{ data: listingData }, { data: profileData }] =
   await Promise.all([
     supabase
       .from("marketplace_listings")
-      .select("id,title")
+      .select("id,title,price,images")
       .in("id", listingIds),
 
     supabase
@@ -509,280 +527,209 @@ async function updatePurchaseRequestStatus(
     setSending(false);
   };
 
+  const otherName = userMap[otherParticipantId || ""]?.full_name || userMap[otherParticipantId || ""]?.username || "User";
+  const activeListing = activeConversation ? listingMap[activeConversation.listing_id] : null;
+
   return (
-    <div
-      className="min-h-screen px-4 pt-24 pb-10 relative overflow-hidden"
-      style={{ background: "radial-gradient(circle at 20% 20%, #083f5f 0%, #071a3a 40%, #080f2b 100%)" }}
-    >
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div
-          style={{
-            position: "absolute",
-            top: "-15%",
-            left: "-8%",
-            width: "60vw",
-            height: "60vw",
-            background: "radial-gradient(circle, rgba(0,170,255,0.2) 0%, transparent 68%)",
-            borderRadius: "50%",
-            filter: "blur(54px)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "-5%",
-            right: "-8%",
-            width: "52vw",
-            height: "52vw",
-            background: "radial-gradient(circle, rgba(107,48,255,0.2) 0%, transparent 70%)",
-            borderRadius: "50%",
-            filter: "blur(56px)",
-          }}
-        />
-      </div>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f3f4f6", paddingTop: 64, display: "flex", flexDirection: "column" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto", width: "100%", padding: "24px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
-          <button
-            onClick={() => navigate("/marketplace")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#0f213f]/85 backdrop-blur-md border border-cyan-500/30 text-slate-100 font-semibold hover:bg-[#142a4f] transition-colors"
-          >
-            <ArrowLeft size={16} />
-            Back to Marketplace
-          </button>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-cyan-300 via-sky-300 to-violet-400 text-transparent bg-clip-text">
-            Marketplace Messages
-          </h1>
-        </div>
+        {/* Back link */}
+        <button onClick={() => navigate("/marketplace")}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#6b7280" }}
+        >
+          <ArrowLeft size={14} /> Back to Marketplace
+        </button>
 
-        <div className="bg-[#0b1733]/75 backdrop-blur-xl rounded-[2rem] border border-cyan-500/20 shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-[320px_1fr] min-h-[72vh]">
-          <aside className="border-r border-cyan-500/20 p-4 bg-[#111f3d]/75">
-            <h2 className="text-xl font-black text-slate-100 mb-3">Inbox</h2>
-            {loadingConversations ? (
-              <p className="text-sm text-slate-300">Loading conversations...</p>
-            ) : conversations.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-cyan-500/30 p-4 text-sm text-slate-300 bg-[#0f203f]/70">
-                No conversations yet.
+        {/* Main shell */}
+        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", backgroundColor: "#ffffff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", height: "calc(100vh - 148px)", minHeight: 500 }}>
+
+          {/* ── LEFT: conversation list ── */}
+          <div style={{ borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {/* Header */}
+            <div style={{ padding: "18px 16px 12px", borderBottom: "1px solid #f3f4f6" }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: "0 0 12px" }}>Messages</h2>
+              <div style={{ position: "relative" }}>
+                <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none" }} />
+                <input type="text" placeholder="Search messages..." style={{ width: "100%", padding: "8px 12px 8px 30px", borderRadius: 20, border: "1px solid #e5e7eb", fontSize: 13, backgroundColor: "#f9fafb", color: "#374151", outline: "none", boxSizing: "border-box" }} readOnly />
               </div>
-            ) : (
-              <div className="space-y-2.5">
-                {conversations.map((conversation) => {
-                  const selected = conversation.id === activeConversationId;
-                  return (
-                    <button
-                      key={conversation.id}
-                      onClick={() => navigate(`/marketplace/inbox/${conversation.id}`)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all ${
-                        selected
-                          ? "bg-gradient-to-r from-cyan-500/25 to-violet-500/20 border-cyan-300/60 shadow-md"
-                          : "bg-[#0f203f]/70 border-cyan-500/20 hover:border-cyan-300/50 hover:bg-[#12284f]"
-                      }`}
-                    >
-                      <p className="text-sm font-bold text-slate-100 truncate">
-  {userMap[
-    conversation.buyer_id === currentUserId
-      ? conversation.seller_id
-      : conversation.buyer_id
-  ]?.full_name ||
-    userMap[
-      conversation.buyer_id === currentUserId
-        ? conversation.seller_id
-        : conversation.buyer_id
-    ]?.username ||
-    "User"}
-</p>
-
-<p className="text-xs text-slate-300 truncate mt-0.5">
-  {listingMap[conversation.listing_id]?.title || "Listing"}
-</p>
-                      <p className="text-xs text-slate-300 mt-1">
-                        {formatMessageTime(conversation.last_message_at)}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </aside>
-
-          <section className="flex flex-col min-h-[72vh]">
-            <div className="p-4 border-b border-cyan-500/20 bg-[#111f3d]/70 flex items-center justify-between gap-3 flex-wrap">
-              <h3 className="text-lg font-black text-slate-100 truncate">
-                {activeConversation ? (
-  <div>
-    <p className="text-lg font-black text-slate-100 truncate">
-      {userMap[otherParticipantId || ""]?.full_name ||
-        userMap[otherParticipantId || ""]?.username ||
-        "User"}
-    </p>
-
-    <p className="text-sm text-slate-400 font-medium">
-      {listingMap[activeConversation.listing_id]?.title}
-    </p>
-  </div>
-) : (
-  "Select a conversation"
-)}
-              </h3>
-              {activeConversation && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={openReportModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-200 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition"
-                  >
-                    <ShieldAlert size={14} />
-                    Report
-                  </button>
-                  <button
-                    onClick={openBlockModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-200 border border-red-300/30 bg-red-400/10 hover:bg-red-400/20 transition"
-                  >
-                    <UserX size={14} />
-                    {otherParticipantBlocked ? "Blocked" : "Block"}
-                  </button>
-                </div>
-              )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#0c1a36]/55">
-            {purchaseRequests.map((request) => {
-  const isSeller = request.seller_id === currentUserId;
-
-  return (
-    <div
-      key={request.id}
-      className="rounded-2xl border border-green-400/30 bg-green-500/10 p-4 text-slate-100"
-    >
-      <p className="text-xs font-bold uppercase tracking-widest text-green-300">
-        {isSeller ? "Order Received" : "Purchase Request Sent"}
-      </p>
-
-      <p className="mt-2 text-lg font-black text-white">
-        ${Number(request.offered_price)}
-      </p>
-
-      <p className="mt-1 text-sm text-slate-300">
-        Status:{" "}
-        <span className="font-bold text-green-300">
-          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-        </span>
-      </p>
-
-{isSeller && request.status === "pending" && (
-  <div className="mt-4">
-    <p className="mb-3 text-sm text-slate-300">
-      Buyer wants to purchase this item at full price.
-    </p>
-
-    <div className="grid grid-cols-2 gap-3">
-      <button
-        type="button"
-        onClick={() =>
-          updatePurchaseRequestStatus(request, "accepted")
-        }
-        className="rounded-xl bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600"
-      >
-        Accept
-      </button>
-
-      <button
-        type="button"
-        onClick={() =>
-          updatePurchaseRequestStatus(request, "declined")
-        }
-        className="rounded-xl bg-red-500 px-4 py-3 text-sm font-bold text-white hover:bg-red-600"
-      >
-        Decline
-      </button>
-    </div>
-  </div>
-)}
-      {!isSeller && request.status === "pending" && (
-        <p className="mt-3 text-sm text-slate-300">
-          Waiting for seller response.
-        </p>
-      )}
-    </div>
-  );
-})}
-              {!activeConversation ? (
-                <p className="text-slate-300">Choose a conversation from the left.</p>
-              ) : loadingMessages ? (
-                <p className="text-slate-300">Loading messages...</p>
-              ) : messages.length === 0 ? (
-                <p className="text-slate-300">Start the conversation.</p>
-              ) : (
-                messages.map((message) => {
-                  const mine = message.sender_id === currentUserId;
-                  return (
-                    <div key={message.id} className={`max-w-[78%] ${mine ? "ml-auto" : "mr-auto"}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-3 shadow-sm ${
-                          mine
-                            ? "text-white"
-                            : "bg-[#13284d] border border-cyan-500/20 text-slate-100"
-                        }`}
-                        style={
-                          mine
-                            ? { background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }
-                            : undefined
-                        }
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.body}</p>
+            {/* List */}
+            <div style={{ overflowY: "auto", flex: 1 }}>
+              {loadingConversations ? (
+                <p style={{ padding: 16, fontSize: 13, color: "#9ca3af" }}>Loading...</p>
+              ) : conversations.length === 0 ? (
+                <p style={{ padding: 16, fontSize: 13, color: "#9ca3af" }}>No conversations yet.</p>
+              ) : conversations.map((conv) => {
+                const selected = conv.id === activeConversationId;
+                const otherId = conv.buyer_id === currentUserId ? conv.seller_id : conv.buyer_id;
+                const name = userMap[otherId]?.full_name || userMap[otherId]?.username || "User";
+                return (
+                  <button key={conv.id} onClick={() => navigate(`/marketplace/inbox/${conv.id}`)}
+                    style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "12px 16px", border: "none", borderBottom: "1px solid #f3f4f6", backgroundColor: selected ? "#eff6ff" : "transparent", cursor: "pointer", textAlign: "left" }}
+                    onMouseEnter={(e) => { if (!selected) e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { if (!selected) e.currentTarget.style.backgroundColor = selected ? "#eff6ff" : "transparent"; }}
+                  >
+                    <AvatarCircle name={name} size={44} active={selected} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: selected ? "#1d4ed8" : "#111827", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, marginRight: 6 }}>{name}</p>
+                        <p style={{ fontSize: 11, color: "#9ca3af", margin: 0, flexShrink: 0 }}>{formatShortTime(conv.last_message_at)}</p>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-1 px-1">
-                        {message.sender_name || "User"} · {formatMessageTime(message.created_at)}
+                      <p style={{ fontSize: 12, color: "#6b7280", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {listingMap[conv.listing_id]?.title || "Listing"}
                       </p>
                     </div>
-                  );
-                })
-              )}
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            <div className="border-t border-cyan-500/20 p-4 flex flex-col gap-2 bg-[#111f3d]/70">
-              {otherParticipantBlocked && (
-                <p className="text-xs text-amber-200 bg-amber-500/15 border border-amber-300/30 px-3 py-2 rounded-xl">
-                  You blocked this user. You can unblock them in Settings &gt; Blocked Users.
-                </p>
-              )}
-              {blockedByOtherParticipant && (
-                <p className="text-xs text-red-200 bg-red-500/15 border border-red-300/30 px-3 py-2 rounded-xl">
-                  You cannot send messages in this chat because this user blocked you.
-                </p>
-              )}
-              <div className="flex gap-2">
-              <input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder="Type your message..."
-                className="flex-1 px-4 py-3 rounded-2xl border border-cyan-500/25 bg-[#0c1b37] text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400 outline-none"
-                maxLength={2000}
-                disabled={!activeConversation || otherParticipantBlocked || blockedByOtherParticipant}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={
-                  !activeConversation ||
-                  sending ||
-                  draft.trim().length === 0 ||
-                  otherParticipantBlocked ||
-                  blockedByOtherParticipant
-                }
-                className="px-5 py-3 rounded-2xl text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 shadow-sm"
-                style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
-              >
-                <Send size={16} />
-                Send
-              </button>
+          {/* ── RIGHT: chat panel ── */}
+          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {!activeConversation ? (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "#9ca3af" }}>
+                <p style={{ fontSize: 14 }}>Select a conversation to start messaging</p>
               </div>
-            </div>
-          </section>
+            ) : (
+              <>
+                {/* Chat header */}
+                <div style={{ padding: "12px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                  <AvatarCircle name={otherName} size={40} />
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: "#111827", margin: 0 }}>{otherName}</p>
+                    <p style={{ fontSize: 12, color: "#22c55e", margin: 0, fontWeight: 600 }}>Active now</p>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {/* Decorative icons matching the design */}
+                    <button style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "default", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Phone size={15} color="#6b7280" />
+                    </button>
+                    <button style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "default", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Video size={15} color="#6b7280" />
+                    </button>
+                    <button onClick={openReportModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Report">
+                      <ShieldAlert size={15} color="#f59e0b" />
+                    </button>
+                    <button onClick={openBlockModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title={otherParticipantBlocked ? "Blocked" : "Block"}>
+                      <UserX size={15} color={otherParticipantBlocked ? "#ef4444" : "#6b7280"} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Listing banner */}
+                {activeListing && (
+                  <div style={{ margin: "10px 16px 0", padding: "10px 14px", borderRadius: 10, border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", flexShrink: 0, backgroundColor: "#e0e7ff" }}>
+                        {activeListing.images?.[0] ? (
+                          <img src={activeListing.images[0]} alt={activeListing.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #818cf8, #6366f1)" }} />
+                        )}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9ca3af", margin: "0 0 2px" }}>Inquiring about</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "#111827", margin: 0 }}>{activeListing.title}</p>
+                      </div>
+                    </div>
+                    {activeListing.price != null && (
+                      <p style={{ fontSize: 16, fontWeight: 800, color: "#111827", margin: 0 }}>
+                        {activeListing.price === 0 ? "Free" : `$${activeListing.price}`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Messages */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+
+                  {/* Purchase request cards */}
+                  {purchaseRequests.map((request) => {
+                    const isSeller = request.seller_id === currentUserId;
+                    return (
+                      <div key={request.id} style={{ borderRadius: 12, border: "1px solid #bbf7d0", backgroundColor: "#f0fdf4", padding: "12px 14px" }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#16a34a", margin: "0 0 4px" }}>
+                          {isSeller ? "Order Received" : "Purchase Request Sent"}
+                        </p>
+                        <p style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: "0 0 3px" }}>${Number(request.offered_price)}</p>
+                        <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>
+                          Status: <span style={{ fontWeight: 700, color: "#16a34a" }}>{request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span>
+                        </p>
+                        {isSeller && request.status === "pending" && (
+                          <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                            <button type="button" onClick={() => updatePurchaseRequestStatus(request, "accepted")} style={{ padding: "8px 0", borderRadius: 8, backgroundColor: "#22c55e", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>Accept</button>
+                            <button type="button" onClick={() => updatePurchaseRequestStatus(request, "declined")} style={{ padding: "8px 0", borderRadius: 8, backgroundColor: "#ef4444", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>Decline</button>
+                          </div>
+                        )}
+                        {!isSeller && request.status === "pending" && (
+                          <p style={{ fontSize: 12, color: "#6b7280", margin: "6px 0 0", fontStyle: "italic" }}>Waiting for seller response.</p>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Date separator */}
+                  {messages.length > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "6px 0" }}>
+                      <div style={{ flex: 1, height: 1, backgroundColor: "#e5e7eb" }} />
+                      <span style={{ fontSize: 11, color: "#9ca3af", fontWeight: 600, whiteSpace: "nowrap" }}>Today</span>
+                      <div style={{ flex: 1, height: 1, backgroundColor: "#e5e7eb" }} />
+                    </div>
+                  )}
+
+                  {loadingMessages ? (
+                    <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center" }}>Loading messages...</p>
+                  ) : messages.length === 0 ? (
+                    <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", marginTop: 24 }}>Start the conversation.</p>
+                  ) : messages.map((msg) => {
+                    const mine = msg.sender_id === currentUserId;
+                    return (
+                      <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: mine ? "flex-end" : "flex-start", alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "72%" }}>
+                        <div style={{ padding: "10px 14px", borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px", backgroundColor: mine ? "#1e3a5f" : "#f3f4f6", color: mine ? "#ffffff" : "#111827", fontSize: 14, lineHeight: 1.5, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+                          {msg.body}
+                        </div>
+                        <p style={{ fontSize: 11, color: "#9ca3af", margin: "3px 4px 0" }}>
+                          {formatShortTime(msg.created_at)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Block notices */}
+                {(otherParticipantBlocked || blockedByOtherParticipant) && (
+                  <div style={{ padding: "6px 16px", flexShrink: 0 }}>
+                    <p style={{ fontSize: 12, color: "#b91c1c", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 12px", margin: 0 }}>
+                      {otherParticipantBlocked ? "You blocked this user. Unblock in Settings → Blocked Users." : "You cannot send messages — this user blocked you."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Input bar */}
+                <div style={{ padding: "12px 16px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    placeholder="Type a message..."
+                    maxLength={2000}
+                    disabled={!activeConversation || otherParticipantBlocked || blockedByOtherParticipant}
+                    style={{ flex: 1, padding: "10px 16px", borderRadius: 24, border: "1px solid #e5e7eb", fontSize: 14, color: "#111827", outline: "none", backgroundColor: "#f9fafb", fontFamily: "inherit" }}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!activeConversation || sending || draft.trim().length === 0 || otherParticipantBlocked || blockedByOtherParticipant}
+                    style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: "#1e3a5f", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: (sending || draft.trim().length === 0 || otherParticipantBlocked || blockedByOtherParticipant) ? 0.45 : 1, transition: "opacity 0.15s" }}
+                  >
+                    <Send size={16} color="#ffffff" />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

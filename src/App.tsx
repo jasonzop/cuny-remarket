@@ -15,6 +15,10 @@ import PrivacyPolicy from "./sub-pages/PrivacyPolicy";
 import MyListings from "./sub-pages/MyListings";
 import SavedItems from "./sub-pages/SavedItems";
 import PastOrders from "./sub-pages/PastOrders";
+import ListingDetail from "./sub-pages/ListingDetail";
+import UserProfile from "./sub-pages/UserProfile";
+import CreateListing from "./sub-pages/CreateListing";
+import CartPage from "./sub-pages/CartPages";
 
 function App() {
   return (
@@ -28,6 +32,10 @@ function App() {
           <Route path="/" element={<Search />} />
           <Route path="/search" element={<Search />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/:id" element={<ListingDetail />} />
+          <Route path="/sell" element={<CreateListing />} />
+          <Route path="/seller/:userId" element={<UserProfile />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/messages" element={<MarketplaceInbox />} />
           <Route
             path="/messages/:conversationId"

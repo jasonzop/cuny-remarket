@@ -467,10 +467,6 @@ useEffect(() => {
     setShowCourseDropdown(false);
   };
 
-  const openCreateModal = () => {
-    resetForm();
-    setIsPostModalOpen(true);
-  };
 
   const openEditModal = (item: MarketplaceListing) => {
     setEditingItem(item);
@@ -1257,7 +1253,7 @@ alert(
 </button>
     {loggedIn && (
       <button
-        onClick={openCreateModal}
+        onClick={() => navigate("/sell")}
         className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
         style={{
           background:
@@ -1454,7 +1450,7 @@ onChange={(e) =>
                   </p>
 
                   <button
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => navigate(`/marketplace/${item.id}`)}
                     className="marketplace-view-button w-full mt-auto py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors"
                   >
                     View Details
