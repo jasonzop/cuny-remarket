@@ -1,7 +1,7 @@
 ﻿/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Phone, Search, Send, ShieldAlert, UserX, Video, X } from "lucide-react";
+import { ArrowLeft, Search, Send, ShieldAlert, UserX, X } from "lucide-react";
 import { supabase } from "../../supabase-client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -44,6 +44,7 @@ type UserMeta = {
   id: string;
   username: string;
   full_name?: string;
+  avatar_url?: string | null;
 };
 
 const REPORT_REASONS = [
@@ -78,12 +79,16 @@ function formatShortTime(timestamp: string) {
   return days[date.getDay()];
 }
 
-function AvatarCircle({ name, size = 40, active = false }: { name: string; size?: number; active?: boolean }) {
+function AvatarCircle({ name, avatarUrl, size = 40, active = false }: { name: string; avatarUrl?: string | null; size?: number; active?: boolean }) {
   const initial = name.charAt(0).toUpperCase();
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: active ? "#1e3a5f" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.38, fontWeight: 700, color: active ? "#ffffff" : "#1e3a5f" }}>
-        {initial}
+      <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: active ? "#1e3a5f" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.38, fontWeight: 700, color: active ? "#ffffff" : "#1e3a5f", overflow: "hidden" }}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          initial
+        )}
       </div>
       <div style={{ position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: "50%", backgroundColor: "#22c55e", border: "2px solid #ffffff" }} />
     </div>
@@ -249,7 +254,7 @@ const [{ data: listingData }, { data: profileData }] =
 
     supabase
       .from("profiles")
-      .select("id, username, full_name")
+      .select("id, username, full_name, avatar_url")
       .in("id", participantIds),
   ]);
 
@@ -528,10 +533,11 @@ async function updatePurchaseRequestStatus(
   };
 
   const otherName = userMap[otherParticipantId || ""]?.full_name || userMap[otherParticipantId || ""]?.username || "User";
+  const otherAvatarUrl = userMap[otherParticipantId || ""]?.avatar_url || null;
   const activeListing = activeConversation ? listingMap[activeConversation.listing_id] : null;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f3f4f6", paddingTop: 64, display: "flex", flexDirection: "column" }}>
+    <div className="messages-page" style={{ minHeight: "100vh", backgroundColor: "#f3f4f6", paddingTop: 64, display: "flex", flexDirection: "column" }}>
       <div style={{ maxWidth: 980, margin: "0 auto", width: "100%", padding: "24px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
 
         {/* Back link */}
@@ -542,16 +548,16 @@ async function updatePurchaseRequestStatus(
         </button>
 
         {/* Main shell */}
-        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", backgroundColor: "#ffffff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", height: "calc(100vh - 148px)", minHeight: 500 }}>
+        <div className="messages-shell" style={{ display: "grid", gridTemplateColumns: "280px 1fr", backgroundColor: "#ffffff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", height: "calc(100vh - 148px)", minHeight: 500 }}>
 
           {/* ── LEFT: conversation list ── */}
-          <div style={{ borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div className="messages-sidebar" style={{ borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {/* Header */}
-            <div style={{ padding: "18px 16px 12px", borderBottom: "1px solid #f3f4f6" }}>
+            <div className="messages-sidebar-header" style={{ padding: "18px 16px 12px", borderBottom: "1px solid #f3f4f6" }}>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: "0 0 12px" }}>Messages</h2>
               <div style={{ position: "relative" }}>
                 <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none" }} />
-                <input type="text" placeholder="Search messages..." style={{ width: "100%", padding: "8px 12px 8px 30px", borderRadius: 20, border: "1px solid #e5e7eb", fontSize: 13, backgroundColor: "#f9fafb", color: "#374151", outline: "none", boxSizing: "border-box" }} readOnly />
+                <input className="messages-input" type="text" placeholder="Search messages..." style={{ width: "100%", padding: "8px 12px 8px 30px", borderRadius: 20, border: "1px solid #e5e7eb", fontSize: 13, backgroundColor: "#f9fafb", color: "#374151", outline: "none", boxSizing: "border-box" }} readOnly />
               </div>
             </div>
 
@@ -564,14 +570,15 @@ async function updatePurchaseRequestStatus(
               ) : conversations.map((conv) => {
                 const selected = conv.id === activeConversationId;
                 const otherId = conv.buyer_id === currentUserId ? conv.seller_id : conv.buyer_id;
-                const name = userMap[otherId]?.full_name || userMap[otherId]?.username || "User";
+                const participant = userMap[otherId];
+                const name = participant?.full_name || participant?.username || "User";
                 return (
-                  <button key={conv.id} onClick={() => navigate(`/marketplace/inbox/${conv.id}`)}
+                  <button className={`messages-conversation ${selected ? "messages-conversation-selected" : ""}`} key={conv.id} onClick={() => navigate(`/marketplace/inbox/${conv.id}`)}
                     style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "12px 16px", border: "none", borderBottom: "1px solid #f3f4f6", backgroundColor: selected ? "#eff6ff" : "transparent", cursor: "pointer", textAlign: "left" }}
                     onMouseEnter={(e) => { if (!selected) e.currentTarget.style.backgroundColor = "#f9fafb"; }}
                     onMouseLeave={(e) => { if (!selected) e.currentTarget.style.backgroundColor = selected ? "#eff6ff" : "transparent"; }}
                   >
-                    <AvatarCircle name={name} size={44} active={selected} />
+                    <AvatarCircle name={name} avatarUrl={participant?.avatar_url} size={44} active={selected} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                         <p style={{ fontSize: 14, fontWeight: 700, color: selected ? "#1d4ed8" : "#111827", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, marginRight: 6 }}>{name}</p>
@@ -588,7 +595,7 @@ async function updatePurchaseRequestStatus(
           </div>
 
           {/* ── RIGHT: chat panel ── */}
-          <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div className="messages-chat" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {!activeConversation ? (
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "#9ca3af" }}>
                 <p style={{ fontSize: 14 }}>Select a conversation to start messaging</p>
@@ -596,24 +603,31 @@ async function updatePurchaseRequestStatus(
             ) : (
               <>
                 {/* Chat header */}
-                <div style={{ padding: "12px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-                  <AvatarCircle name={otherName} size={40} />
-                  <div style={{ flex: 1 }}>
+                <div className="messages-chat-header" style={{ padding: "12px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => otherParticipantId && navigate(`/seller/${otherParticipantId}`)}
+                    className="messages-profile-link"
+                    style={{ display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", padding: 0, cursor: otherParticipantId ? "pointer" : "default", textAlign: "left" }}
+                    title="View profile"
+                  >
+                    <AvatarCircle name={otherName} avatarUrl={otherAvatarUrl} size={40} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => otherParticipantId && navigate(`/seller/${otherParticipantId}`)}
+                    className="messages-profile-link"
+                    style={{ flex: 1, background: "none", border: "none", padding: 0, cursor: otherParticipantId ? "pointer" : "default", textAlign: "left" }}
+                    title="View profile"
+                  >
                     <p style={{ fontSize: 15, fontWeight: 700, color: "#111827", margin: 0 }}>{otherName}</p>
                     <p style={{ fontSize: 12, color: "#22c55e", margin: 0, fontWeight: 600 }}>Active now</p>
-                  </div>
+                  </button>
                   <div style={{ display: "flex", gap: 8 }}>
-                    {/* Decorative icons matching the design */}
-                    <button style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "default", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Phone size={15} color="#6b7280" />
-                    </button>
-                    <button style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "default", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Video size={15} color="#6b7280" />
-                    </button>
-                    <button onClick={openReportModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Report">
+                    <button className="messages-icon-button" onClick={openReportModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Report">
                       <ShieldAlert size={15} color="#f59e0b" />
                     </button>
-                    <button onClick={openBlockModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title={otherParticipantBlocked ? "Blocked" : "Block"}>
+                    <button className="messages-icon-button" onClick={openBlockModal} style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title={otherParticipantBlocked ? "Blocked" : "Block"}>
                       <UserX size={15} color={otherParticipantBlocked ? "#ef4444" : "#6b7280"} />
                     </button>
                   </div>
@@ -621,7 +635,7 @@ async function updatePurchaseRequestStatus(
 
                 {/* Listing banner */}
                 {activeListing && (
-                  <div style={{ margin: "10px 16px 0", padding: "10px 14px", borderRadius: 10, border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+                  <div className="messages-item-strip" style={{ margin: "10px 16px 0", padding: "10px 14px", borderRadius: 10, border: "1px solid #e5e7eb", backgroundColor: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", flexShrink: 0, backgroundColor: "#e0e7ff" }}>
                         {activeListing.images?.[0] ? (
@@ -636,21 +650,31 @@ async function updatePurchaseRequestStatus(
                       </div>
                     </div>
                     {activeListing.price != null && (
-                      <p style={{ fontSize: 16, fontWeight: 800, color: "#111827", margin: 0 }}>
-                        {activeListing.price === 0 ? "Free" : `$${activeListing.price}`}
-                      </p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <p style={{ fontSize: 16, fontWeight: 800, color: "#111827", margin: 0 }}>
+                          {activeListing.price === 0 ? "Free" : `$${activeListing.price}`}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/marketplace/${activeListing.id}`)}
+                          className="messages-view-listing-button"
+                          style={{ padding: "7px 12px", borderRadius: 999, border: "1px solid #e5e7eb", background: "#ffffff", color: "#111827", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                        >
+                          View
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
 
                 {/* Messages */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="messages-thread" style={{ flex: 1, overflowY: "auto", padding: "14px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
 
                   {/* Purchase request cards */}
                   {purchaseRequests.map((request) => {
                     const isSeller = request.seller_id === currentUserId;
                     return (
-                      <div key={request.id} style={{ borderRadius: 12, border: "1px solid #bbf7d0", backgroundColor: "#f0fdf4", padding: "12px 14px" }}>
+                      <div className="messages-request-card" key={request.id} style={{ borderRadius: 12, border: "1px solid #bbf7d0", backgroundColor: "#f0fdf4", padding: "12px 14px" }}>
                         <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#16a34a", margin: "0 0 4px" }}>
                           {isSeller ? "Order Received" : "Purchase Request Sent"}
                         </p>
@@ -688,7 +712,7 @@ async function updatePurchaseRequestStatus(
                     const mine = msg.sender_id === currentUserId;
                     return (
                       <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: mine ? "flex-end" : "flex-start", alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "72%" }}>
-                        <div style={{ padding: "10px 14px", borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px", backgroundColor: mine ? "#1e3a5f" : "#f3f4f6", color: mine ? "#ffffff" : "#111827", fontSize: 14, lineHeight: 1.5, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+                        <div className={mine ? "messages-bubble-mine" : "messages-bubble-other"} style={{ padding: "10px 14px", borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px", backgroundColor: mine ? "#1e3a5f" : "#f3f4f6", color: mine ? "#ffffff" : "#111827", fontSize: 14, lineHeight: 1.5, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
                           {msg.body}
                         </div>
                         <p style={{ fontSize: 11, color: "#9ca3af", margin: "3px 4px 0" }}>
@@ -709,8 +733,9 @@ async function updatePurchaseRequestStatus(
                 )}
 
                 {/* Input bar */}
-                <div style={{ padding: "12px 16px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
+                <div className="messages-composer" style={{ padding: "12px 16px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
                   <input
+                    className="messages-input"
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}

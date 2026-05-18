@@ -684,3 +684,370 @@ html[data-theme="dark"] .report-cancel-button:hover {
   background: var(--purple-hover) !important;
   color: #ffffff !important;
 }
+
+/* Messages dark mode */
+html[data-theme="dark"] .messages-page {
+  background:
+    radial-gradient(circle at top left, rgba(0, 170, 255, 0.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(107, 48, 255, 0.2), transparent 36%),
+    var(--purple-base) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .messages-shell {
+  background: rgba(15, 8, 28, 0.94) !important;
+  border-color: rgba(147, 51, 234, 0.28) !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .messages-sidebar,
+html[data-theme="dark"] .messages-sidebar-header,
+html[data-theme="dark"] .messages-chat,
+html[data-theme="dark"] .messages-chat-header,
+html[data-theme="dark"] .messages-composer {
+  background: rgba(14, 7, 25, 0.96) !important;
+  border-color: rgba(147, 51, 234, 0.22) !important;
+}
+
+html[data-theme="dark"] .messages-thread {
+  background:
+    linear-gradient(rgba(147, 51, 234, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(147, 51, 234, 0.05) 1px, transparent 1px),
+    rgba(8, 4, 17, 0.74) !important;
+  background-size: 30px 30px !important;
+}
+
+html[data-theme="dark"] .messages-conversation {
+  background: transparent !important;
+  border-color: rgba(147, 51, 234, 0.18) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .messages-conversation:hover,
+html[data-theme="dark"] .messages-conversation-selected {
+  background: rgba(147, 51, 234, 0.22) !important;
+}
+
+html[data-theme="dark"] .messages-conversation-selected {
+  box-shadow: inset 3px 0 0 #00aaff !important;
+}
+
+html[data-theme="dark"] .messages-item-strip,
+html[data-theme="dark"] .messages-icon-button,
+html[data-theme="dark"] .messages-input {
+  background: rgba(26, 10, 44, 0.92) !important;
+  border-color: rgba(147, 51, 234, 0.32) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .messages-input::placeholder {
+  color: #b99bea !important;
+}
+
+html[data-theme="dark"] .messages-bubble-other {
+  background: rgba(38, 10, 62, 0.92) !important;
+  color: #f5efff !important;
+  border: 1px solid rgba(147, 51, 234, 0.22) !important;
+}
+
+html[data-theme="dark"] .messages-bubble-mine {
+  background: linear-gradient(90deg, #00aaff, #6b30ff) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .messages-request-card {
+  background: rgba(11, 39, 30, 0.94) !important;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+  color: #ecfdf5 !important;
+}
+
+html[data-theme="dark"] .messages-request-card p,
+html[data-theme="dark"] .messages-request-card span {
+  color: #d1fae5 !important;
+}
+
+html[data-theme="dark"] .messages-request-card p:first-child,
+html[data-theme="dark"] .messages-request-card span {
+  color: #6ee7b7 !important;
+}
+
+html[data-theme="dark"] .messages-page h1,
+html[data-theme="dark"] .messages-page h2,
+html[data-theme="dark"] .messages-page h3,
+html[data-theme="dark"] .messages-page p,
+html[data-theme="dark"] .messages-page span,
+html[data-theme="dark"] .messages-page button {
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .messages-page p[style*="#9ca3af"],
+html[data-theme="dark"] .messages-page p[style*="#6b7280"],
+html[data-theme="dark"] .messages-page span[style*="#9ca3af"] {
+  color: #c9a8f4 !important;
+}
+
+html[data-theme="dark"] .messages-page svg {
+  filter: brightness(1.25);
+}
+
+html[data-theme="dark"] .messages-profile-link:hover p:first-child {
+  color: #ffffff !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+html[data-theme="dark"] .messages-view-listing-button {
+  background: rgba(10, 4, 20, 0.92) !important;
+  border-color: rgba(147, 51, 234, 0.38) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .messages-view-listing-button:hover {
+  background: linear-gradient(90deg, #00aaff, #6b30ff) !important;
+  border-color: rgba(0, 170, 255, 0.52) !important;
+  color: #ffffff !important;
+}
+
+/* Create listing dark mode */
+html[data-theme="dark"] .create-listing-page {
+  background:
+    radial-gradient(circle at top left, rgba(0, 170, 255, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(107, 48, 255, 0.18), transparent 36%),
+    var(--purple-base) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .create-listing-card {
+  background: rgba(18, 8, 32, 0.96) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42) !important;
+}
+
+html[data-theme="dark"] .create-listing-page label {
+  color: #d8b4fe !important;
+}
+
+html[data-theme="dark"] .create-listing-page input,
+html[data-theme="dark"] .create-listing-page select,
+html[data-theme="dark"] .create-listing-page textarea {
+  background: rgba(10, 4, 20, 0.92) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .create-listing-page input::placeholder,
+html[data-theme="dark"] .create-listing-page textarea::placeholder {
+  color: #b982ff !important;
+}
+
+html[data-theme="dark"] .create-listing-page input:focus,
+html[data-theme="dark"] .create-listing-page select:focus,
+html[data-theme="dark"] .create-listing-page textarea:focus {
+  border-color: #00aaff !important;
+  box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.22) !important;
+}
+
+html[data-theme="dark"] .create-listing-page input:disabled,
+html[data-theme="dark"] .create-listing-page select:disabled,
+html[data-theme="dark"] .create-listing-page textarea:disabled {
+  background: rgba(93, 84, 105, 0.48) !important;
+  color: #c9a8f4 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="dark"] .create-listing-page option {
+  background: #120820 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .create-listing-page [class*="bg-gray-50"],
+html[data-theme="dark"] .create-listing-page [class*="bg-white"] {
+  background: rgba(10, 4, 20, 0.92) !important;
+}
+
+html[data-theme="dark"] .create-listing-page [class*="text-gray-"],
+html[data-theme="dark"] .create-listing-page [class*="text-slate-"] {
+  color: #e9d5ff !important;
+}
+
+html[data-theme="dark"] .create-listing-page [class*="border-gray-"],
+html[data-theme="dark"] .create-listing-page [class*="border-cyan-"] {
+  border-color: rgba(147, 51, 234, 0.34) !important;
+}
+
+html[data-theme="dark"] .create-listing-page button:not([type="submit"]):hover,
+html[data-theme="dark"] .create-listing-page label:hover {
+  background: rgba(147, 51, 234, 0.22) !important;
+  border-color: rgba(0, 170, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .create-listing-page div[class*="absolute"][class*="top-full"] {
+  background: rgba(13, 6, 24, 0.98) !important;
+  border-color: rgba(147, 51, 234, 0.4) !important;
+}
+
+html[data-theme="dark"] .create-listing-page div[class*="absolute"][class*="top-full"] button {
+  background: transparent !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .create-listing-page div[class*="absolute"][class*="top-full"] button:hover {
+  background: rgba(147, 51, 234, 0.26) !important;
+  color: #ffffff !important;
+}
+
+/* Header dropdown dark hovers */
+html[data-theme="dark"] .header-dropdown-panel {
+  background: rgba(18, 8, 32, 0.98) !important;
+  border-color: rgba(147, 51, 234, 0.42) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(0, 170, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] .header-dropdown-content {
+  background:
+    linear-gradient(rgba(147, 51, 234, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(147, 51, 234, 0.05) 1px, transparent 1px),
+    rgba(18, 8, 32, 0.98) !important;
+  background-size: 24px 24px !important;
+}
+
+html[data-theme="dark"] .header-dropdown-eyebrow {
+  color: #d8b4fe !important;
+}
+
+html[data-theme="dark"] .header-dropdown-title {
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-sub,
+html[data-theme="dark"] .header-dropdown-content p:not(.header-dropdown-eyebrow):not(.header-dropdown-title) {
+  color: #c9a8f4 !important;
+}
+
+html[data-theme="dark"] .header-dropdown-item {
+  background: transparent !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-item:hover {
+  background: rgba(147, 51, 234, 0.22) !important;
+}
+
+html[data-theme="dark"] .header-dropdown-item:hover .header-dropdown-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-item:hover .header-dropdown-sub {
+  color: #e9d5ff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-icon {
+  background: rgba(10, 4, 20, 0.92) !important;
+  border-color: rgba(147, 51, 234, 0.38) !important;
+  color: #d8b4fe !important;
+}
+
+html[data-theme="dark"] .header-dropdown-item:hover .header-dropdown-icon {
+  background: linear-gradient(90deg, rgba(0, 170, 255, 0.18), rgba(107, 48, 255, 0.22)) !important;
+  border-color: rgba(0, 170, 255, 0.52) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-actions {
+  border-top-color: rgba(147, 51, 234, 0.24) !important;
+}
+
+html[data-theme="dark"] .header-dropdown-secondary {
+  background: rgba(10, 4, 20, 0.86) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+  color: #e9d5ff !important;
+}
+
+html[data-theme="dark"] .header-dropdown-secondary:hover {
+  background: rgba(147, 51, 234, 0.22) !important;
+  border-color: rgba(0, 170, 255, 0.48) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .header-nav-link:hover {
+  background: rgba(147, 51, 234, 0.18) !important;
+  color: #ffffff !important;
+}
+
+/* Cart page */
+html[data-theme="dark"] .cart-page {
+  background:
+    radial-gradient(circle at top left, rgba(0, 170, 255, 0.14), transparent 34%),
+    radial-gradient(circle at top right, rgba(107, 48, 255, 0.2), transparent 36%),
+    var(--purple-base) !important;
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .cart-page h1,
+html[data-theme="dark"] .cart-page h2,
+html[data-theme="dark"] .cart-page h3,
+html[data-theme="dark"] .cart-page p,
+html[data-theme="dark"] .cart-page span,
+html[data-theme="dark"] .cart-page label,
+html[data-theme="dark"] .cart-page button {
+  color: #f5efff !important;
+}
+
+html[data-theme="dark"] .cart-page .text-gray-500,
+html[data-theme="dark"] .cart-page .text-gray-400,
+html[data-theme="dark"] .cart-page .text-slate-400 {
+  color: #c9a8f4 !important;
+}
+
+html[data-theme="dark"] .cart-card,
+html[data-theme="dark"] .cart-modal {
+  background: rgba(18, 8, 32, 0.96) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .cart-soft-button,
+html[data-theme="dark"] .cart-empty-icon,
+html[data-theme="dark"] .cart-nudge,
+html[data-theme="dark"] .cart-qty-button {
+  background: rgba(26, 10, 44, 0.9) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+}
+
+html[data-theme="dark"] .cart-soft-button:hover,
+html[data-theme="dark"] .cart-nudge:hover,
+html[data-theme="dark"] .cart-qty-button:hover {
+  background: rgba(147, 51, 234, 0.22) !important;
+  border-color: rgba(0, 170, 255, 0.48) !important;
+}
+
+html[data-theme="dark"] .cart-page input,
+html[data-theme="dark"] .cart-page select,
+html[data-theme="dark"] .cart-page textarea {
+  background: rgba(10, 4, 20, 0.92) !important;
+  border-color: rgba(147, 51, 234, 0.34) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .cart-page input::placeholder,
+html[data-theme="dark"] .cart-page textarea::placeholder {
+  color: #b982ff !important;
+}
+
+html[data-theme="dark"] .cart-page input:focus,
+html[data-theme="dark"] .cart-page select:focus,
+html[data-theme="dark"] .cart-page textarea:focus {
+  border-color: #00aaff !important;
+  box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.22) !important;
+}
+
+html[data-theme="dark"] .cart-page option {
+  background: #120820 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .cart-page hr,
+html[data-theme="dark"] .cart-page [style*="borderTop"] {
+  border-color: rgba(147, 51, 234, 0.24) !important;
+}

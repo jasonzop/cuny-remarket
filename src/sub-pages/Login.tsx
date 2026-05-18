@@ -196,7 +196,7 @@ if (!isCunyEmail(normalizedEmail)) {
             </div>
 
             <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-8">
-              Smart Shopping Platform
+              CUNY student marketplace
             </p>
 
             <h2 className="text-xl font-bold text-gray-900 mb-1 self-start">
@@ -362,7 +362,7 @@ if (!isCunyEmail(normalizedEmail)) {
 
         {/* Footer note */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          &copy; {new Date().getFullYear()} VeriFind. All rights reserved.
+          &copy; {new Date().getFullYear()} CUNY ReMarket. All rights reserved.
         </p>
       </div>
     </div>
