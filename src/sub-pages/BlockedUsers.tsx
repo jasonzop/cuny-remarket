@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase-client";
 
@@ -104,37 +103,35 @@ export default function BlockedUsers() {
   };
 
   return (
-    <div className="profile-page min-h-screen bg-gray-100 px-4 py-10">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
-        <button
-          type="button"
-          onClick={() => navigate("/profile")}
-          className="profile-secondary-button inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-        >
-          <ArrowLeft size={16} />
-          Back to Profile
-        </button>
-
-        <div className="profile-card bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-8 py-8 flex flex-col">
-            <h1 className="text-3xl font-black text-gray-900 mb-2">
+    <main className="min-h-screen bg-[#f1eadc] pt-20 text-[#17120c]">
+      <div className="fixed inset-0 pointer-events-none [background-image:linear-gradient(rgba(23,18,12,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(23,18,12,0.055)_1px,transparent_1px)] [background-size:24px_24px]" />
+      <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-5 border border-[#17120c]/25 bg-[#fffaf0] p-5">
+        <div className="mb-1 flex items-end justify-between border-b border-[#17120c]/25 pb-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/45">Profile</p>
+            <h1 className="text-2xl font-black">
               Blocked Users
             </h1>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="mt-1 text-sm text-black/55">
               Manage sellers you blocked from Marketplace. You can unblock
               anytime.
             </p>
+          </div>
+          <button onClick={() => navigate("/profile")} className="border border-[#17120c] px-4 py-2 text-xs font-black">
+            Back to profile
+          </button>
+        </div>
 
             {blockedUsersMessage && (
-              <div className="blocked-users-message rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700 px-4 py-3 mb-4">
+              <div className="border border-[#17120c]/25 bg-[#fffdf7] px-4 py-3 text-sm text-black/70">
                 {blockedUsersMessage}
               </div>
             )}
 
             {blockedUsersLoading ? (
-              <p className="text-sm text-gray-500">Loading blocked users...</p>
+              <p className="text-sm text-black/55">Loading blocked users...</p>
             ) : blockedUsers.length === 0 ? (
-              <div className="blocked-users-empty rounded-xl border border-dashed border-gray-300 px-4 py-4 text-sm text-gray-500">
+              <div className="border border-dashed border-[#17120c]/30 bg-[#fffdf7] px-4 py-4 text-sm text-black/55">
                 You have not blocked anyone yet.
               </div>
             ) : (
@@ -142,20 +139,20 @@ export default function BlockedUsers() {
                 {blockedUsers.map((blockedUser) => (
                   <div
                     key={blockedUser.id}
-                    className="blocked-user-card rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 border border-[#17120c]/25 bg-[#fffdf7] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
-                      <p className="blocked-user-name text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-black text-[#17120c]">
                         {blockedUser.username
                           ? `@${blockedUser.username}`
                           : `User ${blockedUser.blocked_id.slice(0, 8)}`}
                       </p>
-                      <p className="blocked-user-meta text-xs text-gray-500 mt-1">
+                      <p className="mt-1 text-xs text-black/55">
                         Blocked on{" "}
                         {new Date(blockedUser.created_at).toLocaleDateString()}
                       </p>
                       {blockedUser.reason && (
-                        <p className="blocked-user-meta text-xs text-gray-500 mt-1">
+                        <p className="mt-1 text-xs text-black/55">
                           Reason: {blockedUser.reason}
                         </p>
                       )}
@@ -164,7 +161,7 @@ export default function BlockedUsers() {
                       type="button"
                       onClick={() => handleUnblockUser(blockedUser.id)}
                       disabled={unblockingId === blockedUser.id}
-                      className="blocked-user-unblock-button rounded-xl px-4 py-2 text-sm font-semibold text-red-700 border border-red-200 bg-red-50 hover:bg-red-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="border border-[#17120c] bg-[#fffaf0] px-4 py-2 text-sm font-black text-[#17120c] transition hover:bg-[#17120c] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {unblockingId === blockedUser.id
                         ? "Unblocking..."
@@ -174,9 +171,7 @@ export default function BlockedUsers() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
       </div>
-    </div>
+    </main>
   );
 }

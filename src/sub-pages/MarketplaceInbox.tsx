@@ -36,12 +36,16 @@ type ChatMessage = {
 type ListingMeta = {
   id: string;
   title: string;
+  images?: string[] | null;
+  price?: number | null;
+  is_free?: boolean | null;
 };
 
 type UserMeta = {
   id: string;
   username: string;
   full_name?: string;
+  avatar_url?: string | null;
 };
 
 const REPORT_REASONS = [
@@ -226,12 +230,12 @@ const [{ data: listingData }, { data: profileData }] =
   await Promise.all([
     supabase
       .from("marketplace_listings")
-      .select("id,title")
+      .select("id,title,images,price,is_free")
       .in("id", listingIds),
 
     supabase
       .from("profiles")
-      .select("id, username, full_name")
+      .select("id, username, full_name, avatar_url")
       .in("id", participantIds),
   ]);
 
@@ -509,95 +513,130 @@ async function updatePurchaseRequestStatus(
     setSending(false);
   };
 
-  return (
-    <div
-      className="min-h-screen px-4 pt-24 pb-10 relative overflow-hidden"
-      style={{ background: "radial-gradient(circle at 20% 20%, #083f5f 0%, #071a3a 40%, #080f2b 100%)" }}
-    >
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div
-          style={{
-            position: "absolute",
-            top: "-15%",
-            left: "-8%",
-            width: "60vw",
-            height: "60vw",
-            background: "radial-gradient(circle, rgba(0,170,255,0.2) 0%, transparent 68%)",
-            borderRadius: "50%",
-            filter: "blur(54px)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "-5%",
-            right: "-8%",
-            width: "52vw",
-            height: "52vw",
-            background: "radial-gradient(circle, rgba(107,48,255,0.2) 0%, transparent 70%)",
-            borderRadius: "50%",
-            filter: "blur(56px)",
-          }}
-        />
-      </div>
+  const activeListingTitle = activeConversation
+    ? listingMap[activeConversation.listing_id]?.title || "Listing"
+    : "No item selected";
+  const activeListing = activeConversation
+    ? listingMap[activeConversation.listing_id]
+    : null;
+  const activeOtherUser = otherParticipantId ? userMap[otherParticipantId] : null;
+  const activeOtherName =
+    activeOtherUser?.full_name || activeOtherUser?.username || "User";
 
-      <div className="relative z-10 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
+  const renderAvatar = (user?: UserMeta | null, size = 44) => (
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+      <span
+        className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-[#17120c]/30 bg-[#fffdf7] text-sm font-black"
+      >
+        {user?.avatar_url ? (
+          <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          (user?.full_name || user?.username || "U").charAt(0).toUpperCase()
+        )}
+      </span>
+      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#fffaf0] bg-[#22c55e]" />
+    </span>
+  );
+
+  const renderListingThumb = (listing?: ListingMeta | null) => (
+    <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-[#17120c]/25 bg-[repeating-linear-gradient(45deg,#f9f2e5_0,#f9f2e5_8px,#efe5d4_8px,#efe5d4_9px)]">
+      {listing?.images?.[0] ? (
+        <img src={listing.images[0]} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 50 50" preserveAspectRatio="none">
+          <line x1="0" y1="0" x2="50" y2="50" stroke="rgba(0,0,0,0.16)" strokeWidth="1" />
+        </svg>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#f1eadc] px-3 pt-24 pb-10 text-[#17120c]">
+      <div className="pointer-events-none fixed inset-0 [background-image:linear-gradient(rgba(23,18,12,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(23,18,12,0.055)_1px,transparent_1px)] [background-size:24px_24px]" />
+
+      <div className="relative z-10 mx-auto max-w-7xl border border-black/25 bg-[#fffaf0] shadow-[10px_10px_0_rgba(23,18,12,0.08)]">
+        <div className="flex items-center justify-between gap-4 border-b border-black/25 px-4 py-3">
           <button
             onClick={() => navigate("/marketplace")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#0f213f]/85 backdrop-blur-md border border-cyan-500/30 text-slate-100 font-semibold hover:bg-[#142a4f] transition-colors"
+            className="inline-flex items-center gap-2 border border-black/25 bg-[#fffaf0] px-3 py-1.5 text-xs font-black transition hover:bg-black hover:text-white"
           >
-            <ArrowLeft size={16} />
-            Back to Marketplace
+            <ArrowLeft size={14} />
+            Browse
           </button>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-cyan-300 via-sky-300 to-violet-400 text-transparent bg-clip-text">
-            Marketplace Messages
-          </h1>
+          <div className="flex items-center gap-3 text-xs font-bold">
+            <button onClick={() => navigate("/marketplace")} className="border-b border-black">Browse</button>
+            <button onClick={() => navigate("/sell")} className="text-black/55 hover:text-black">Sell</button>
+            <span className="border-b border-black text-black">Inbox</span>
+            <button onClick={() => navigate("/profile")} className="text-black/55 hover:text-black">Profile</button>
+          </div>
         </div>
 
-        <div className="bg-[#0b1733]/75 backdrop-blur-xl rounded-[2rem] border border-cyan-500/20 shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-[320px_1fr] min-h-[72vh]">
-          <aside className="border-r border-cyan-500/20 p-4 bg-[#111f3d]/75">
-            <h2 className="text-xl font-black text-slate-100 mb-3">Inbox</h2>
+        <div className="grid min-h-[72vh] grid-cols-1 overflow-hidden md:grid-cols-[220px_1fr_230px]">
+          <aside className="border-r border-black/25 bg-[#f6efe1] p-3">
+            <div className="mb-3 flex gap-1">
+              {["All", "Buying", "Selling"].map((tab) => (
+                <span
+                  key={tab}
+                  className={`border border-black/25 px-3 py-1 text-[11px] font-black ${
+                    tab === "All" ? "bg-[#17120c] text-white" : "bg-[#fffaf0] text-[#17120c]"
+                  }`}
+                >
+                  {tab}
+                </span>
+              ))}
+            </div>
             {loadingConversations ? (
-              <p className="text-sm text-slate-300">Loading conversations...</p>
+              <p className="text-sm text-black/55">Loading conversations...</p>
             ) : conversations.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-cyan-500/30 p-4 text-sm text-slate-300 bg-[#0f203f]/70">
+              <div className="border border-dashed border-black/25 bg-[#fffaf0] p-4 text-sm text-black/55">
                 No conversations yet.
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 {conversations.map((conversation) => {
                   const selected = conversation.id === activeConversationId;
                   return (
                     <button
                       key={conversation.id}
                       onClick={() => navigate(`/marketplace/inbox/${conversation.id}`)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all ${
+                      className={`w-full border p-2.5 text-left transition-all ${
                         selected
-                          ? "bg-gradient-to-r from-cyan-500/25 to-violet-500/20 border-cyan-300/60 shadow-md"
-                          : "bg-[#0f203f]/70 border-cyan-500/20 hover:border-cyan-300/50 hover:bg-[#12284f]"
+                          ? "border-black bg-[#fffaf0] shadow-[3px_3px_0_rgba(23,18,12,0.10)]"
+                          : "border-black/15 bg-transparent hover:border-black/40 hover:bg-[#fffaf0]"
                       }`}
                     >
-                      <p className="text-sm font-bold text-slate-100 truncate">
-  {userMap[
-    conversation.buyer_id === currentUserId
-      ? conversation.seller_id
-      : conversation.buyer_id
-  ]?.full_name ||
-    userMap[
-      conversation.buyer_id === currentUserId
-        ? conversation.seller_id
-        : conversation.buyer_id
-    ]?.username ||
-    "User"}
-</p>
+                      <div className="flex items-center gap-2">
+                        {renderAvatar(
+                          userMap[
+                            conversation.buyer_id === currentUserId
+                              ? conversation.seller_id
+                              : conversation.buyer_id
+                          ],
+                          38
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-black text-[#17120c]">
+                            {userMap[
+                              conversation.buyer_id === currentUserId
+                                ? conversation.seller_id
+                                : conversation.buyer_id
+                            ]?.full_name ||
+                              userMap[
+                                conversation.buyer_id === currentUserId
+                                  ? conversation.seller_id
+                                  : conversation.buyer_id
+                              ]?.username ||
+                              "User"}
+                          </p>
 
-<p className="text-xs text-slate-300 truncate mt-0.5">
-  {listingMap[conversation.listing_id]?.title || "Listing"}
-</p>
-                      <p className="text-xs text-slate-300 mt-1">
-                        {formatMessageTime(conversation.last_message_at)}
-                      </p>
+                          <p className="mt-0.5 truncate text-[11px] text-black/55">
+                            {listingMap[conversation.listing_id]?.title || "Listing"}
+                          </p>
+                          <p className="mt-1 text-[10px] text-black/38">
+                            {formatMessageTime(conversation.last_message_at)}
+                          </p>
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
@@ -605,37 +644,37 @@ async function updatePurchaseRequestStatus(
             )}
           </aside>
 
-          <section className="flex flex-col min-h-[72vh]">
-            <div className="p-4 border-b border-cyan-500/20 bg-[#111f3d]/70 flex items-center justify-between gap-3 flex-wrap">
-              <h3 className="text-lg font-black text-slate-100 truncate">
+          <section className="flex min-h-[72vh] flex-col border-r border-black/25 bg-[#fffdf7]">
+            <div className="flex items-center justify-between gap-3 border-b border-black/25 bg-[#fffaf0] p-3">
+              <h3 className="truncate text-lg font-black text-[#17120c]">
                 {activeConversation ? (
-  <div>
-    <p className="text-lg font-black text-slate-100 truncate">
-      {userMap[otherParticipantId || ""]?.full_name ||
-        userMap[otherParticipantId || ""]?.username ||
-        "User"}
-    </p>
-
-    <p className="text-sm text-slate-400 font-medium">
-      {listingMap[activeConversation.listing_id]?.title}
-    </p>
-  </div>
-) : (
-  "Select a conversation"
-)}
+                  <div className="flex items-center gap-3">
+                    {renderAvatar(activeOtherUser, 48)}
+                    <div>
+                      <p className="truncate text-sm font-black text-[#17120c]">
+                        {activeOtherName}
+                      </p>
+                      <p className="text-xs font-medium text-[#22a35a]">
+                        Active now
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  "Select a conversation"
+                )}
               </h3>
               {activeConversation && (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={openReportModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-200 border border-amber-300/30 bg-amber-400/10 hover:bg-amber-400/20 transition"
+                    className="inline-flex items-center gap-1.5 border border-black/25 bg-[#fffaf0] px-3 py-1.5 text-xs font-bold text-[#17120c] transition hover:bg-black hover:text-white"
                   >
                     <ShieldAlert size={14} />
                     Report
                   </button>
                   <button
                     onClick={openBlockModal}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-200 border border-red-300/30 bg-red-400/10 hover:bg-red-400/20 transition"
+                    className="inline-flex items-center gap-1.5 border border-black/25 bg-[#fffaf0] px-3 py-1.5 text-xs font-bold text-[#17120c] transition hover:bg-black hover:text-white"
                   >
                     <UserX size={14} />
                     {otherParticipantBlocked ? "Blocked" : "Block"}
@@ -644,33 +683,56 @@ async function updatePurchaseRequestStatus(
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#0c1a36]/55">
+            {activeConversation && (
+              <div className="flex items-center justify-between gap-3 border-b border-black/15 bg-[#fffdf7] px-4 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {renderListingThumb(activeListing)}
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
+                      Inquiring about
+                    </p>
+                    <p className="truncate text-sm font-black text-[#17120c]">
+                      {activeListingTitle}
+                    </p>
+                  </div>
+                </div>
+                {activeListing && (
+                  <p className="text-lg font-black">
+                    {activeListing.is_free || Number(activeListing.price) === 0
+                      ? "FREE"
+                      : `$${Number(activeListing.price ?? 0)}`}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex-1 space-y-3 overflow-y-auto bg-[#fffdf7] p-5">
             {purchaseRequests.map((request) => {
   const isSeller = request.seller_id === currentUserId;
 
   return (
     <div
       key={request.id}
-      className="rounded-2xl border border-green-400/30 bg-green-500/10 p-4 text-slate-100"
+      className="border border-black/25 bg-[#f6efe1] p-4 text-[#17120c]"
     >
-      <p className="text-xs font-bold uppercase tracking-widest text-green-300">
+      <p className="text-xs font-bold uppercase tracking-widest text-black/45">
         {isSeller ? "Order Received" : "Purchase Request Sent"}
       </p>
 
-      <p className="mt-2 text-lg font-black text-white">
+      <p className="mt-2 text-lg font-black text-[#17120c]">
         ${Number(request.offered_price)}
       </p>
 
-      <p className="mt-1 text-sm text-slate-300">
+      <p className="mt-1 text-sm text-black/55">
         Status:{" "}
-        <span className="font-bold text-green-300">
+        <span className="font-bold text-[#1f5f35]">
           {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
         </span>
       </p>
 
 {isSeller && request.status === "pending" && (
   <div className="mt-4">
-    <p className="mb-3 text-sm text-slate-300">
+    <p className="mb-3 text-sm text-black/55">
       Buyer wants to purchase this item at full price.
     </p>
 
@@ -680,7 +742,7 @@ async function updatePurchaseRequestStatus(
         onClick={() =>
           updatePurchaseRequestStatus(request, "accepted")
         }
-        className="rounded-xl bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600"
+        className="border border-black bg-[#1f5f35] px-4 py-3 text-sm font-bold text-white"
       >
         Accept
       </button>
@@ -690,7 +752,7 @@ async function updatePurchaseRequestStatus(
         onClick={() =>
           updatePurchaseRequestStatus(request, "declined")
         }
-        className="rounded-xl bg-red-500 px-4 py-3 text-sm font-bold text-white hover:bg-red-600"
+        className="border border-black bg-[#8a1f1f] px-4 py-3 text-sm font-bold text-white"
       >
         Decline
       </button>
@@ -698,7 +760,7 @@ async function updatePurchaseRequestStatus(
   </div>
 )}
       {!isSeller && request.status === "pending" && (
-        <p className="mt-3 text-sm text-slate-300">
+        <p className="mt-3 text-sm text-black/55">
           Waiting for seller response.
         </p>
       )}
@@ -706,32 +768,32 @@ async function updatePurchaseRequestStatus(
   );
 })}
               {!activeConversation ? (
-                <p className="text-slate-300">Choose a conversation from the left.</p>
+                <p className="text-black/55">Choose a conversation from the left.</p>
               ) : loadingMessages ? (
-                <p className="text-slate-300">Loading messages...</p>
+                <p className="text-black/55">Loading messages...</p>
               ) : messages.length === 0 ? (
-                <p className="text-slate-300">Start the conversation.</p>
+                <p className="text-black/55">Start the conversation.</p>
               ) : (
                 messages.map((message) => {
                   const mine = message.sender_id === currentUserId;
                   return (
                     <div key={message.id} className={`max-w-[78%] ${mine ? "ml-auto" : "mr-auto"}`}>
                       <div
-                        className={`rounded-2xl px-4 py-3 shadow-sm ${
+                        className={`border px-4 py-3 shadow-sm ${
                           mine
                             ? "text-white"
-                            : "bg-[#13284d] border border-cyan-500/20 text-slate-100"
+                            : "border-black/25 bg-[#fffaf0] text-[#17120c]"
                         }`}
                         style={
                           mine
-                            ? { background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }
+                            ? { background: "#1f3d6d", borderColor: "#1f3d6d" }
                             : undefined
                         }
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{message.body}</p>
                       </div>
-                      <p className="text-[11px] text-slate-300 mt-1 px-1">
-                        {message.sender_name || "User"} · {formatMessageTime(message.created_at)}
+                      <p className="mt-1 px-1 text-[11px] text-black/38">
+                        {message.sender_name || "User"} - {formatMessageTime(message.created_at)}
                       </p>
                     </div>
                   );
@@ -739,14 +801,14 @@ async function updatePurchaseRequestStatus(
               )}
             </div>
 
-            <div className="border-t border-cyan-500/20 p-4 flex flex-col gap-2 bg-[#111f3d]/70">
+            <div className="flex flex-col gap-2 border-t border-black/25 bg-[#fffaf0] p-3">
               {otherParticipantBlocked && (
-                <p className="text-xs text-amber-200 bg-amber-500/15 border border-amber-300/30 px-3 py-2 rounded-xl">
+                <p className="border border-black/25 bg-[#f6efe1] px-3 py-2 text-xs text-[#17120c]">
                   You blocked this user. You can unblock them in Settings &gt; Blocked Users.
                 </p>
               )}
               {blockedByOtherParticipant && (
-                <p className="text-xs text-red-200 bg-red-500/15 border border-red-300/30 px-3 py-2 rounded-xl">
+                <p className="border border-black/25 bg-[#fff0f0] px-3 py-2 text-xs text-[#8a1f1f]">
                   You cannot send messages in this chat because this user blocked you.
                 </p>
               )}
@@ -761,7 +823,7 @@ async function updatePurchaseRequestStatus(
                   }
                 }}
                 placeholder="Type your message..."
-                className="flex-1 px-4 py-3 rounded-2xl border border-cyan-500/25 bg-[#0c1b37] text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400 outline-none"
+                className="flex-1 border border-black/30 bg-white px-4 py-3 text-sm text-[#17120c] outline-none placeholder:text-black/35"
                 maxLength={2000}
                 disabled={!activeConversation || otherParticipantBlocked || blockedByOtherParticipant}
               />
@@ -774,8 +836,8 @@ async function updatePurchaseRequestStatus(
                   otherParticipantBlocked ||
                   blockedByOtherParticipant
                 }
-                className="px-5 py-3 rounded-2xl text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 shadow-sm"
-                style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
+                className="inline-flex items-center gap-2 border border-[#17120c] px-5 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "#1f3d6d" }}
               >
                 <Send size={16} />
                 Send
@@ -783,6 +845,50 @@ async function updatePurchaseRequestStatus(
               </div>
             </div>
           </section>
+
+          <aside className="hidden bg-[#f6efe1] p-4 md:block">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-black/45">
+              Item
+            </p>
+            <div className="border border-black/25 bg-[#fffaf0]">
+              <div className="relative aspect-[4/3] bg-[repeating-linear-gradient(45deg,#f9f2e5_0,#f9f2e5_8px,#efe5d4_8px,#efe5d4_9px)]">
+                {activeListing?.images?.[0] ? (
+                  <img src={activeListing.images[0]} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <>
+                    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 75" preserveAspectRatio="none">
+                      <line x1="0" y1="0" x2="100" y2="75" stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
+                    </svg>
+                    <span className="absolute bottom-2 left-2 text-[9px] font-bold uppercase tracking-[0.12em] text-black/28">
+                      book cover
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="p-3">
+                <p className="text-sm font-black italic">{activeListingTitle}</p>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-black/45">
+                  CUNY listing
+                </p>
+                <button
+                  onClick={() => activeConversation && navigate(`/marketplace/${activeConversation.listing_id}`)}
+                  disabled={!activeConversation}
+                  className="mt-3 w-full border border-black/25 bg-[#fffaf0] px-3 py-1.5 text-xs font-black hover:bg-black hover:text-white disabled:opacity-50"
+                >
+                  View listing
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 border border-black/25 bg-[#fffaf0] p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/45">
+                Safety
+              </p>
+              <p className="mt-2 text-xs leading-5 text-black/58">
+                Meet at a public campus spot. Do not share off-platform contact
+                details until you are comfortable.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
 

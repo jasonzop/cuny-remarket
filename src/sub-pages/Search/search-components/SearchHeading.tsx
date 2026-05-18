@@ -1,41 +1,48 @@
-import GreetUser from "../../SharedComponents/GreetUser";
 import { motion } from "framer-motion";
+import GreetUser from "../../SharedComponents/GreetUser";
+import type { CunyTheme } from "../../../lib/cunyThemes";
 
 interface SearchHeadingProps {
   visible: boolean;
+  theme: CunyTheme;
+  campusShortName: string;
 }
 
 export default function SearchHeading({
   visible,
+  theme,
+  campusShortName,
 }: SearchHeadingProps) {
   return (
     <div
-      className="flex flex-col items-center text-center mb-8"
+      className="flex flex-col"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
         transition: "opacity 0.6s ease, transform 0.6s ease",
       }}
     >
-      <GreetUser visible={visible} />
+      <div className="-ml-3 self-start">
+        <GreetUser visible={visible} />
+      </div>
 
-<motion.h1
-  className="search-title text-5xl font-black mb-2 leading-tight"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: visible ? 1 : 0 }}
-  transition={{ duration: 0.7, ease: "easeOut" }}
-  style={{
-    color: "#60a5fa",
-    textShadow: "0 0 25px rgba(59,130,246,.45)",
-  }}
->
-  Discover For You
-</motion.h1>
+      <motion.h1
+        className="mt-5 max-w-md text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-6xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        Buy, sell
+        <br />
+        and swap
+        <br />
+        <span style={{ color: theme.accent }}>within {campusShortName}.</span>
+      </motion.h1>
 
-      <p className="search-subtitle text-gray-400 text-sm font-medium max-w-md">
-        Personalized recommendations, campus listings, and student essentials across CUNY
+      <p className="mt-5 max-w-sm text-sm font-semibold leading-6 text-white/82">
+        A campus-only marketplace for CUNY students. No bots. No randoms. Just
+        classmates and cleaner listings.
       </p>
-
     </div>
   );
 }

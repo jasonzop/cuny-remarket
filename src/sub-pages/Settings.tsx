@@ -2,11 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Ban,
   Camera,
   ChevronRight,
-  GraduationCap,
   Heart,
   LockKeyhole,
   Palette,
@@ -78,11 +76,10 @@ function SettingRow({
     <button
       type="button"
       onClick={onClick}
-      className="profile-setting-row group flex w-full items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+      className="profile-setting-row group flex w-full items-center gap-4 border border-[#17120c]/25 bg-[#fffaf0] px-4 py-3 text-left transition hover:bg-[#f6efe1]"
     >
       <span
-        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-md"
-        style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#17120c]/25 bg-[#fffdf7] text-[#17120c]"
       >
         {icon}
       </span>
@@ -90,7 +87,7 @@ function SettingRow({
         <span className="block text-sm font-black text-gray-900">{title}</span>
         <span className="mt-0.5 block text-sm text-gray-500">{description}</span>
       </span>
-      <ChevronRight className="h-5 w-5 flex-shrink-0 text-gray-300 transition group-hover:text-blue-500" />
+      <ChevronRight className="h-5 w-5 flex-shrink-0 text-[#17120c]/40 transition group-hover:text-[#17120c]" />
     </button>
   );
 }
@@ -116,6 +113,7 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
+  void avatarMessage;
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -327,118 +325,149 @@ if (majorData) {
     setPasswordLoading(false);
   };
 
-  const BackButton = () => (
-    <div className="mb-4 flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={() => navigate("/profile")}
-        className="profile-secondary-button inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-      >
-        <ArrowLeft size={16} />
-        Back to Profile
-      </button>
-      <button
-        type="button"
-        onClick={() => navigate("/search")}
-        className="profile-secondary-button inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-      >
-        Exit Settings
-      </button>
-    </div>
-  );
+  const mono: React.CSSProperties = { fontFamily: "'IBM Plex Mono', monospace" };
+  const briq: React.CSSProperties = { fontFamily: "'Bricolage Grotesque', sans-serif" };
 
   return (
-    <div className="profile-page min-h-screen bg-gray-100 px-4 py-10">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
-        {section !== "home" && <BackButton />}
+    <div className="paper-profile-page" style={{ minHeight: "100vh", backgroundColor: "#f1eadc", position: "relative" }}>
+      {/* Graph paper */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, backgroundImage: "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+
+      <div style={{ display: "flex", position: "relative", zIndex: 1, paddingTop: 80, minHeight: "100vh" }}>
+        {/* SIDEBAR */}
+        <aside style={{ width: 220, flexShrink: 0, borderRight: "1px solid rgba(0,0,0,0.08)", padding: "28px 16px", position: "sticky", top: 80, height: "calc(100vh - 80px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16, backgroundColor: "#f2ede4" }}>
+          {/* Avatar */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
+            <button type="button" onClick={() => setShowAvatarPreview(true)} style={{ width: 128, height: 128, borderRadius: "50%", overflow: "hidden", border: "1.5px solid rgba(0,0,0,0.45)", cursor: "pointer", background: "#fffaf0", padding: 0, flexShrink: 0 }}>
+              {avatarUrl ? <img src={avatarUrl} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (
+                <div style={{ width: "100%", height: "100%", backgroundImage: "repeating-linear-gradient(45deg,rgba(0,0,0,0.045) 0,rgba(0,0,0,0.045) 1px,transparent 1px,transparent 8px)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.35)", fontWeight: 800, fontSize: 10, ...mono }}>my photo</div>
+              )}
+            </button>
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={avatarLoading} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 999, border: "1.5px solid rgba(0,0,0,0.15)", backgroundColor: "#ffffff", color: "#1a1216", ...mono, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", opacity: avatarLoading ? 0.6 : 1 }}>
+              <Camera size={10} />{avatarLoading ? "Saving..." : "Photo"}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
+            <div style={{ textAlign: "center" }}>
+              <p style={{ ...briq, fontSize: 13, fontWeight: 700, color: "#1a1216", margin: 0 }}>{displayName}</p>
+              <p style={{ ...mono, fontSize: 8, color: "rgba(0,0,0,0.4)", margin: "3px 0 0", overflowWrap: "break-word", maxWidth: "100%" }}>{profileEmail}</p>
+            </div>
+            {(campus || major) && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "center" }}>
+                {campus && <span style={{ ...mono, fontSize: 8, fontWeight: 700, padding: "2px 7px", borderRadius: 999, backgroundColor: "#e0eaff", color: "#1d4f91" }}>{campus.split(" ")[0]}</span>}
+                {major && <span style={{ ...mono, fontSize: 8, fontWeight: 700, padding: "2px 7px", borderRadius: 999, backgroundColor: "#ede0ff", color: "#512d6d" }}>{major.slice(0, 14)}</span>}
+              </div>
+            )}
+          </div>
+
+          <div style={{ height: 1, backgroundColor: "rgba(0,0,0,0.08)" }} />
+
+          {/* Nav */}
+          <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {([
+              { label: "Profile Info", s: "home", path: "/profile", icon: <UserRound size={13} /> },
+              { label: "My Listings", s: "listings", path: "/my-listings", icon: <Store size={13} /> },
+              { label: "Saved Items", s: "saved", path: "/saved-items", icon: <Heart size={13} /> },
+              { label: "Past Orders", s: "orders", path: "/past-orders", icon: <ShoppingBag size={13} /> },
+              { label: "Security", s: "security", path: "/profile/security", icon: <LockKeyhole size={13} /> },
+              { label: "Appearance", s: "appearance", path: "/profile/appearance", icon: <Palette size={13} /> },
+              { label: "Blocked Users", s: "blocked", path: "/blocked-users", icon: <Ban size={13} /> },
+            ] as { label: string; s: string; path: string; icon: React.ReactNode }[]).map(({ label, s, path, icon }) => {
+              const active = section === s || (s === "home" && section === "username");
+              return (
+                <button key={s} type="button" onClick={() => navigate(path)}
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 10px", borderRadius: 8, border: "none", backgroundColor: active ? "#1a1216" : "transparent", color: active ? "#ffffff" : "#1a1216", ...briq, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.06)"; }}
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = active ? "#1a1216" : "transparent"; }}
+                >{icon}{label}</button>
+              );
+            })}
+          </nav>
+
+          <button type="button" onClick={async () => { await supabase.auth.signOut(); navigate("/login"); }}
+            style={{ marginTop: "auto", padding: "9px 10px", borderRadius: 8, border: "1.5px solid rgba(0,0,0,0.1)", backgroundColor: "transparent", color: "rgba(0,0,0,0.4)", ...mono, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", textAlign: "left" }}
+          >Sign out</button>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main style={{ flex: 1, padding: "40px 56px", maxWidth: 900 }}>
+          {/* PLACEHOLDER — sections below */}
+          {false && null}
 
         {section === "home" && (
           <>
-            <button
-              type="button"
-              onClick={() => navigate("/search")}
-              className="profile-secondary-button inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-            >
-              <ArrowLeft size={16} />
-              Back to App
-            </button>
+            <div className="profile-card border border-[#17120c]/30 bg-[#fffaf0] p-5">
+              <div className="flex items-center gap-5">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarPreview(true)}
+                  className="profile-avatar-shell relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-[#17120c]/50 bg-[#fffdf7]"
+                  title="Open profile photo"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[repeating-linear-gradient(45deg,rgba(0,0,0,0.045)_0,rgba(0,0,0,0.045)_1px,transparent_1px,transparent_8px)] text-[10px] font-bold text-black/35">
+                      photo
+                    </span>
+                  )}
+                </button>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-black text-[#17120c]">{displayName}</h1>
+                  <p className="mt-1 text-sm italic text-black/60">
+                    {campus || "Hunter College"} · {major || "Computer Science"} · senior
+                  </p>
+                  <p className="mt-2 text-xs text-black/55">
+                    ★ 4.9 (28 reviews) · 34 items sold · joined {memberSince}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/profile/username")}
+                  className="border border-[#17120c] bg-[#1f3d6d] px-5 py-2 text-xs font-bold text-white"
+                >
+                  Edit profile
+                </button>
+                <button className="border border-[#17120c] bg-[#fffdf7] px-5 py-2 text-xs font-bold">
+                  ... report
+                </button>
+              </div>
+            </div>
 
-            <div className="profile-card overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-              <div className="px-6 py-6">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowAvatarPreview(true)}
-                    className="profile-avatar-shell relative h-24 w-24 overflow-hidden rounded-3xl border border-gray-200 bg-gray-100 shadow-inner transition hover:scale-[1.02]"
-                    title="Open profile photo"
-                  >
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Profile avatar"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="flex h-full w-full items-center justify-center text-3xl font-black text-white"
-                        style={{
-                          background: "linear-gradient(90deg,#00AAFF,#6B30FF)",
-                        }}
-                      >
-                        {profileInitial}
-                      </div>
-                    )}
-                  </button>
+            <div className="mt-5 flex gap-6 border-b border-[#17120c]/25 text-xs font-bold">
+              <span className="border-b border-[#1f3d6d] pb-2 text-[#1f3d6d]">Listings (8)</span>
+              <span className="pb-2">Sold (34)</span>
+              <span className="pb-2">Reviews (28)</span>
+              <span className="pb-2">About</span>
+            </div>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-400">
-                      CUNY ReMarket Profile
-                    </p>
-                    <h1 className="mt-2 text-3xl font-black leading-tight text-gray-900">
-                      {displayName}
-                    </h1>
-                    <p className="mt-1 break-all text-sm text-gray-500">
-                      {profileEmail || "No email found"}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                        {campus || "Campus not added"}
-                      </span>
-                      <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-600">
-                        {major || "Major not added"}
+            <div className="mt-4 grid grid-cols-4 gap-3">
+              {[
+                ["Campbell Biology 12e", "$45", "BIO 100 · HUNTER"],
+                ["Calculus: Early Trans.", "$30", "MATH 150 · CCNY"],
+                ["Intro to Psychology", "FREE", "PSY 101 · BROOKLYN"],
+                ["Norton Anthology Vol B", "$22", "ENG 220 · QUEENS"],
+              ].map(([title, price, meta]) => (
+                <button key={title} className="border border-[#17120c]/30 bg-[#fffaf0] text-left">
+                  <div className="relative aspect-[4/3] bg-[repeating-linear-gradient(45deg,#f9f2e5_0,#f9f2e5_8px,#efe5d4_8px,#efe5d4_9px)]">
+                    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 75" preserveAspectRatio="none">
+                      <line x1="0" y1="0" x2="100" y2="75" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[9px] italic text-black/28">
+                      book cover
+                    </span>
+                  </div>
+                  <div className="p-2">
+                    <p className="truncate text-xs font-bold italic">{title}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.12em] text-black/40">{meta}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-sm font-black">{price}</span>
+                      <span className="rounded-full border border-[#1f7a3b] bg-[#dcfce7] px-2 py-0.5 text-[9px] font-bold text-[#1f5f35]">
+                        available
                       </span>
                     </div>
-                    <p className="mt-3 text-sm text-gray-500">
-                      Member since {memberSince}
-                    </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={avatarLoading}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{
-                      background: "linear-gradient(90deg,#00AAFF,#6B30FF)",
-                    }}
-                  >
-                    <Camera size={16} />
-                    {avatarLoading ? "Saving..." : "Photo"}
-                  </button>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarChange}
-                />
-
-                {avatarMessage && (
-                  <p className="mt-4 text-sm text-gray-500">{avatarMessage}</p>
-                )}
-              </div>
+                </button>
+              ))}
             </div>
 
             <div className="flex flex-col gap-3">
@@ -494,176 +523,173 @@ if (majorData) {
         )}
 
         {section === "username" && (
-          <div className="profile-card rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
-            <div className="mb-6 flex items-center gap-3">
-              <span
-                className="flex h-11 w-11 items-center justify-center rounded-2xl text-white"
-                style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
+          <div className="grid grid-cols-[170px_1fr] gap-6 border border-[#17120c]/25 bg-[#fffaf0] p-4">
+            <aside className="border-r border-[#17120c]/25 pr-4">
+              <button
+                type="button"
+                onClick={() => setShowAvatarPreview(true)}
+                className="relative h-36 w-36 overflow-hidden rounded-full border border-[#17120c]/50 bg-[#fffdf7]"
               >
-                <GraduationCap size={20} />
-              </span>
-              <div>
-                <h1 className="text-2xl font-black text-gray-900">
-                  Edit CUNY Profile
-                </h1>
-                <p className="text-sm text-gray-500">
-                  This information appears on your marketplace profile.
-                </p>
-              </div>
-            </div>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profile avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center bg-[repeating-linear-gradient(45deg,rgba(0,0,0,0.045)_0,rgba(0,0,0,0.045)_1px,transparent_1px,transparent_8px)] text-[10px] font-bold text-black/35">
+                    my photo
+                  </span>
+                )}
+              </button>
+              <p className="mt-3 text-sm font-black">{displayName}</p>
+              <p className="break-all text-[10px] text-black/45">{profileEmail}</p>
+            </aside>
 
-            <div className="grid gap-4">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  Username
+            <section>
+              <div className="mb-5">
+                <h1 className="text-2xl font-black text-[#17120c]">Profile info</h1>
+                <p className="text-sm italic text-black/60">This is what other students see.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
+                  Display name
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(event) => {
+                      setFullName(event.target.value);
+                      setProfileSaved(false);
+                      setProfileError(null);
+                    }}
+                    className="mt-1 h-9 w-full border border-[#17120c]/40 bg-[#fffdf7] px-3 text-sm normal-case tracking-normal text-[#17120c] outline-none"
+                  />
                 </label>
-                <input
-                  type="text"
-                  placeholder="Example: jasonz"
-                  value={username}
-                  onChange={(event) => {
-                    setUsername(event.target.value);
-                    setProfileSaved(false);
-                    setProfileError(null);
-                  }}
-                  className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
 
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Example: Jason Parmar"
-                  value={fullName}
-                  onChange={(event) => {
-                    setFullName(event.target.value);
-                    setProfileSaved(false);
-                    setProfileError(null);
-                  }}
-                  className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <label className="text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
                   Campus
+                  <select
+                    value={campus}
+                    onChange={(event) => {
+                      setCampus(event.target.value);
+                      setProfileSaved(false);
+                      setProfileError(null);
+                    }}
+                    className="mt-1 h-9 w-full border border-[#17120c]/40 bg-[#fffdf7] px-3 text-sm normal-case tracking-normal text-[#17120c] outline-none"
+                  >
+                    <option value="">Select your campus</option>
+                    <option value="Hunter College">Hunter College</option>
+                    <option value="Baruch College">Baruch College</option>
+                    <option value="City College">City College</option>
+                    <option value="Queens College">Queens College</option>
+                    <option value="Brooklyn College">Brooklyn College</option>
+                    <option value="John Jay College">John Jay College</option>
+                    <option value="Lehman College">Lehman College</option>
+                    <option value="College of Staten Island">College of Staten Island</option>
+                    <option value="NYC College of Technology">NYC College of Technology</option>
+                    <option value="Other CUNY Campus">Other CUNY Campus</option>
+                  </select>
                 </label>
-                <select
-                  value={campus}
-                  onChange={(event) => {
-                    setCampus(event.target.value);
-                    setProfileSaved(false);
-                    setProfileError(null);
-                  }}
-                  className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Select your campus</option>
-                  <option value="Hunter College">Hunter College</option>
-                  <option value="Baruch College">Baruch College</option>
-                  <option value="City College">City College</option>
-                  <option value="Queens College">Queens College</option>
-                  <option value="Brooklyn College">Brooklyn College</option>
-                  <option value="John Jay College">John Jay College</option>
-                  <option value="Lehman College">Lehman College</option>
-                  <option value="College of Staten Island">College of Staten Island</option>
-                  <option value="NYC College of Technology">NYC College of Technology</option>
-                  <option value="Other CUNY Campus">Other CUNY Campus</option>
-                </select>
+
+                <label className="relative text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
+                  Major
+                  <input
+                    type="text"
+                    value={majorInput}
+                    placeholder="Computer Science"
+                    onFocus={() => setShowMajorDropdown(true)}
+                    onChange={(event) => {
+                      setMajorInput(event.target.value);
+                      setMajor(event.target.value);
+                      setProfileSaved(false);
+                      setProfileError(null);
+                      setShowMajorDropdown(true);
+                    }}
+                    className="mt-1 h-9 w-full border border-[#17120c]/40 bg-[#fffdf7] px-3 text-sm normal-case tracking-normal text-[#17120c] outline-none"
+                  />
+                  {showMajorDropdown && (
+                    <div className="absolute z-20 mt-1 max-h-44 w-full overflow-y-auto border border-[#17120c]/30 bg-[#fffaf0] normal-case tracking-normal">
+                      {filteredMajors.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-[#f6efe1]"
+                          onClick={() => {
+                            setMajor(item);
+                            setMajorInput(item);
+                            setShowMajorDropdown(false);
+                            setProfileSaved(false);
+                            setProfileError(null);
+                          }}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </label>
+
+                <label className="text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
+                  Year
+                  <input
+                    type="text"
+                    placeholder="Senior"
+                    className="mt-1 h-9 w-full border border-[#17120c]/40 bg-[#fffdf7] px-3 text-sm normal-case tracking-normal text-[#17120c] outline-none"
+                  />
+                </label>
               </div>
 
-<div className="relative">
-  <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-    Major
-  </label>
+              <label className="mt-3 block text-[10px] font-black uppercase tracking-[0.16em] text-black/45">
+                Short bio (optional)
+                <textarea
+                  rows={3}
+                  placeholder="CS senior. Mostly selling old CS & math books - willing to negotiate."
+                  className="mt-1 w-full resize-none border border-[#17120c]/40 bg-[#fffdf7] px-3 py-2 text-sm normal-case tracking-normal text-[#17120c] outline-none"
+                />
+              </label>
 
-  <input
-    type="text"
-    value={majorInput}
-    placeholder="Search or create major..."
-    onFocus={() => setShowMajorDropdown(true)}
-    onChange={(event) => {
-      setMajorInput(event.target.value);
-      setMajor(event.target.value);
-      setProfileSaved(false);
-      setProfileError(null);
-      setShowMajorDropdown(true);
-    }}
-    className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
-  />
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarLoading}
+                  className="h-11 w-11 rounded-full border border-[#17120c]/40 bg-[#fffdf7] text-[10px] font-bold"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border border-[#17120c] bg-[#fffdf7] px-4 py-1.5 text-xs font-bold"
+                >
+                  Change
+                </button>
+                <button className="border border-[#17120c] bg-[#fffdf7] px-4 py-1.5 text-xs font-bold">
+                  Remove
+                </button>
+              </div>
 
-  {showMajorDropdown && (
-    <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-      {filteredMajors.map((item) => (
-        <button
-          key={item}
-          type="button"
-          className="block w-full px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-100"
-          onClick={() => {
-            setMajor(item);
-            setMajorInput(item);
-            setShowMajorDropdown(false);
-            setProfileSaved(false);
-            setProfileError(null);
-          }}
-        >
-          {item}
-        </button>
-      ))}
+              <div className="mt-4 flex items-center justify-between border border-[#17120c]/35 bg-[#fffdf7] px-3 py-2 text-xs">
+                <span><strong>VERIFIED</strong> CUNY email verified Sep 2025</span>
+                <span>✓</span>
+              </div>
 
-      {majorInput.trim() &&
-        !majors.some(
-          (item) => item.toLowerCase() === majorInput.trim().toLowerCase()
-        ) && (
-          <button
-            type="button"
-            className="block w-full px-4 py-3 text-left text-sm font-semibold text-blue-600 hover:bg-blue-50"
-            onClick={async () => {
-              const cleanMajor = majorInput.trim();
+              {profileError && <p className="mt-3 text-xs text-red-500">{profileError}</p>}
 
-              const { error } = await supabase
-                .from("majors")
-                .insert({ name: cleanMajor });
-
-              if (error && error.code !== "23505") {
-                setProfileError("Could not create major: " + error.message);
-                return;
-              }
-
-              setMajors((prev) =>
-                prev.some(
-                  (item) => item.toLowerCase() === cleanMajor.toLowerCase()
-                )
-                  ? prev
-                  : [...prev, cleanMajor].sort()
-              );
-
-              setMajor(cleanMajor);
-              setMajorInput(cleanMajor);
-              setShowMajorDropdown(false);
-              setProfileSaved(false);
-              setProfileError(null);
-            }}
-          >
-            + Create "{majorInput.trim()}"
-          </button>
-        )}
-    </div>
-  )}
-</div>
-</div>
-            {profileError && <p className="mt-3 text-xs text-red-500">{profileError}</p>}
-
-            <button
-              onClick={() => saveProfile()}
-              disabled={profileLoading || !username.trim()}
-              className="mt-5 w-full rounded-xl py-3 text-sm font-semibold text-white shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
-            >
-              {profileLoading ? "Saving..." : profileSaved ? "Profile Saved" : "Save Profile"}
-            </button>
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/profile")}
+                  className="border border-[#17120c] bg-[#fffdf7] px-4 py-2 text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveProfile()}
+                  disabled={profileLoading || !username.trim()}
+                  className="border border-[#17120c] bg-[#1f3d6d] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                >
+                  {profileLoading ? "Saving..." : profileSaved ? "Saved" : "Save changes"}
+                </button>
+              </div>
+            </section>
           </div>
         )}
 
@@ -828,6 +854,8 @@ if (majorData) {
             </p>
           </div>
         )}
+
+        </main>
 
         {showAvatarPreview && (
           <div

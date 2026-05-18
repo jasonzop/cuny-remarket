@@ -568,3 +568,88 @@ html[data-theme="dark"] .report-cancel-button:hover {
   background: rgba(30, 50, 84, 0.95) !important;
   color: #ffffff !important;
 }
+
+/* Paper catalog direction: force these marketplace screens to match the mockups
+   even if the app is currently set to dark mode. */
+html[data-theme="dark"] .paper-header-shell,
+html[data-theme="dark"] .paper-marketplace-page,
+html[data-theme="dark"] .paper-profile-page,
+html[data-theme="dark"] .paper-marketplace-page aside,
+html[data-theme="dark"] .paper-profile-page aside,
+html[data-theme="dark"] .paper-profile-page .profile-card,
+html[data-theme="dark"] .paper-profile-page .profile-setting-row,
+html[data-theme="dark"] .paper-profile-page .profile-secondary-button {
+  background: #fffaf0 !important;
+  color: #17120c !important;
+  border-color: rgba(23, 18, 12, 0.28) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .paper-marketplace-page aside,
+html[data-theme="dark"] .paper-profile-page aside {
+  background: #f2ede4 !important;
+}
+
+html[data-theme="dark"] .paper-marketplace-page input,
+html[data-theme="dark"] .paper-marketplace-page select,
+html[data-theme="dark"] .paper-profile-page input,
+html[data-theme="dark"] .paper-profile-page select,
+html[data-theme="dark"] .paper-profile-page textarea {
+  background: #fffdf7 !important;
+  color: #17120c !important;
+  border-color: rgba(23, 18, 12, 0.28) !important;
+  border-radius: 0 !important;
+}
+
+html[data-theme="dark"] .paper-profile-page .text-gray-900,
+html[data-theme="dark"] .paper-profile-page .text-gray-800,
+html[data-theme="dark"] .paper-profile-page .text-gray-700,
+html[data-theme="dark"] .paper-profile-page .text-gray-600,
+html[data-theme="dark"] .paper-profile-page .text-gray-500,
+html[data-theme="dark"] .paper-marketplace-page .text-gray-900,
+html[data-theme="dark"] .paper-marketplace-page .text-gray-800,
+html[data-theme="dark"] .paper-marketplace-page .text-gray-700,
+html[data-theme="dark"] .paper-marketplace-page .text-gray-600,
+html[data-theme="dark"] .paper-marketplace-page .text-gray-500 {
+  color: #17120c !important;
+}
+
+.paper-profile-page .profile-card,
+.paper-profile-page .profile-setting-row,
+.paper-profile-page .profile-secondary-button {
+  border-radius: 0 !important;
+  border-color: rgba(23, 18, 12, 0.28) !important;
+  background: #fffaf0 !important;
+  box-shadow: none !important;
+}
+
+.paper-profile-page .profile-setting-row {
+  display: none !important;
+}
+
+.paper-profile-page main > .flex.flex-col.gap-3 {
+  display: none !important;
+}
+
+html body .paper-app-header,
+html[data-theme="dark"] body .paper-app-header,
+html body .paper-app-header-inner,
+html[data-theme="dark"] body .paper-app-header-inner {
+  background: #fffaf0 !important;
+  color: #17120c !important;
+  border-color: #17120c !important;
+  box-shadow: none !important;
+}
+
+html body .paper-app-search,
+html[data-theme="dark"] body .paper-app-search {
+  background: #fffdf7 !important;
+  color: #17120c !important;
+  border-color: #17120c !important;
+}
+
+html body .paper-app-search::placeholder,
+html[data-theme="dark"] body .paper-app-search::placeholder {
+  color: rgba(23, 18, 12, 0.42) !important;
+}

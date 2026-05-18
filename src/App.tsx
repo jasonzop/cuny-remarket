@@ -9,6 +9,8 @@ import ForgotPassword from "./sub-pages/ForgotPassword";
 import ResetPassword from "./sub-pages/ResetPassword";
 import Marketplace from "./sub-pages/Marketplace";
 import MarketplaceInbox from "./sub-pages/MarketplaceInbox";
+import ListingDetail from "./sub-pages/ListingDetail";
+import CreateListing from "./sub-pages/CreateListing";
 import BlockedUsers from "./sub-pages/BlockedUsers";
 import Layout from "./Contexts/Layout";
 import PrivacyPolicy from "./sub-pages/PrivacyPolicy";
@@ -28,6 +30,8 @@ function App() {
           <Route path="/" element={<Search />} />
           <Route path="/search" element={<Search />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/:id" element={<ListingDetail />} />
+          <Route path="/sell" element={<CreateListing />} />
           <Route path="/messages" element={<MarketplaceInbox />} />
           <Route
             path="/messages/:conversationId"

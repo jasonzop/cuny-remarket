@@ -11,29 +11,28 @@ export default function GreetUser({ visible }: GreetUserProps) {
     <>
       {username && (
         <div
-          className="relative z-10 flex justify-center mt-5"
+          className="relative z-10 mt-5 flex justify-center"
           style={{ opacity: visible ? 1 : 0, transition: "opacity 0.5s ease" }}
         >
           <div
-            className="greet-user-pill px-4 py-1.5 rounded-full text-sm backdrop-blur-md border"
+            className="greet-user-pill border px-4 py-1.5 text-sm font-semibold backdrop-blur-md"
             style={{
-              background: "rgba(255,255,255,0.55)",
-              borderColor: "rgba(0,170,255,0.2)",
+              background: "rgba(255,250,240,0.82)",
+              borderColor: "rgba(22,18,13,0.22)",
             }}
           >
             Welcome back,{" "}
             <span
-              className="font-semibold"
+              className="font-black"
               style={{
-                background: "linear-gradient(90deg,#00AAFF,#6B30FF)",
+                background: "linear-gradient(90deg,#1f3d6d,#5f2d90)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}
             >
               {username}
-            </span>{" "}
-            👋
+            </span>
           </div>
         </div>
       )}
