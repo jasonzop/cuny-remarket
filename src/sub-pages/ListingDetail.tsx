@@ -570,7 +570,6 @@ export default function ListingDetail() {
       {isBuyModalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl" style={{ background: "#0b1733", border: "1px solid rgba(0,170,255,0.2)" }}>
-            <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }} />
             <div className="p-7">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-2xl font-black text-white">Confirm Purchase Request</h2>
