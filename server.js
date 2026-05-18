@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import { createClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import nodemailer from "nodemailer";
+import { randomInt } from "crypto";
 function normalizeWalmart(item) {
   return {
     product_id: item.product_id ?? item.us_item_id,
@@ -99,6 +101,8 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey);
 const app = express();
 const PORT = 3001;
+const CUNY_EMAIL_DOMAIN = "@login.cuny.edu";
+const signupCodes = new Map();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -138,9 +142,192 @@ app.use(express.json());
 // CORS
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
   next();
+});
+
+const mailer =
+  process.env.EMAIL_HOST &&
+  process.env.EMAIL_PORT &&
+  process.env.EMAIL_USER &&
+  process.env.EMAIL_PASS
+    ? nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: Number(process.env.EMAIL_PORT) === 465,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      })
+    : null;
+
+function isCunyEmail(email) {
+  return email.trim().toLowerCase().endsWith(CUNY_EMAIL_DOMAIN);
+}
+
+function createSignupCode() {
+  return randomInt(100000, 1000000).toString();
+}
+
+app.post("/api/auth/send-signup-code", async (req, res) => {
+  const username = String(req.body.username ?? "").trim();
+  const email = String(req.body.email ?? "").trim().toLowerCase();
+  const password = String(req.body.password ?? "");
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: "Missing signup information." });
+  }
+
+  if (!isCunyEmail(email)) {
+    return res.status(400).json({
+      error: "Only CUNY emails ending with @login.cuny.edu are allowed.",
+    });
+  }
+
+  if (!mailer) {
+    return res.status(500).json({
+      error: "Email sender is not configured on the backend.",
+    });
+  }
+
+  const code = createSignupCode();
+  signupCodes.set(email, {
+    code,
+    username,
+    email,
+    password,
+    attempts: 0,
+    expiresAt: Date.now() + 10 * 60 * 1000,
+  });
+
+  try {
+    await mailer.sendMail({
+      from:
+        process.env.EMAIL_FROM ??
+        `CUNY ReMarket <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your CUNY ReMarket verification code",
+      text: `Your CUNY ReMarket verification code is ${code}. It expires in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #17120c;">
+          <h2>CUNY ReMarket</h2>
+          <p>Your verification code is:</p>
+          <p style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #5f2d90;">${code}</p>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+    });
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("SIGNUP EMAIL ERROR:", error);
+    signupCodes.delete(email);
+    if (error?.code === "EAUTH") {
+      return res.status(500).json({
+        error:
+          "Gmail rejected the email username/password. Create a new Gmail app password and update EMAIL_PASS.",
+      });
+    }
+    res.status(500).json({ error: "Could not send verification email." });
+  }
+});
+
+app.post("/api/auth/verify-signup-code", async (req, res) => {
+  const email = String(req.body.email ?? "").trim().toLowerCase();
+  const code = String(req.body.code ?? "").trim();
+  const pending = signupCodes.get(email);
+
+  if (!pending) {
+    return res.status(400).json({ error: "No pending signup code found." });
+  }
+
+  if (Date.now() > pending.expiresAt) {
+    signupCodes.delete(email);
+    return res.status(400).json({ error: "Verification code expired." });
+  }
+
+  if (pending.attempts >= 5) {
+    signupCodes.delete(email);
+    return res.status(429).json({ error: "Too many incorrect attempts." });
+  }
+
+  if (pending.code !== code) {
+    pending.attempts += 1;
+    return res.status(400).json({ error: "Invalid verification code." });
+  }
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: pending.email,
+    password: pending.password,
+    email_confirm: true,
+    user_metadata: { username: pending.username },
+  });
+
+  if (error) {
+    console.error("SUPABASE CREATE USER ERROR:", error);
+    return res.status(400).json({ error: error.message });
+  }
+
+  signupCodes.delete(email);
+  res.json({ ok: true, userId: data.user?.id });
+});
+
+app.post("/api/auth/complete-signup-profile", async (req, res) => {
+  const userId = String(req.body.userId ?? "").trim();
+  const username = String(req.body.username ?? "").trim();
+  const fullName = String(req.body.fullName ?? "").trim();
+  const campus = String(req.body.campus ?? "").trim();
+  const major = String(req.body.major ?? "").trim();
+  const graduationYear = String(req.body.graduationYear ?? "").trim();
+  const bio = String(req.body.bio ?? "").trim();
+
+  if (!userId || !username || !campus) {
+    return res.status(400).json({
+      error: "Missing profile information.",
+    });
+  }
+
+  const { error: authError } = await supabase.auth.admin.updateUserById(
+    userId,
+    {
+      user_metadata: {
+        username,
+        full_name: fullName,
+        campus,
+        major,
+        graduation_year: graduationYear,
+        bio,
+      },
+    }
+  );
+
+  if (authError) {
+    console.error("SUPABASE UPDATE USER ERROR:", authError);
+    return res.status(400).json({ error: authError.message });
+  }
+
+  const { error: profileError } = await supabase.from("profiles").upsert(
+    {
+      id: userId,
+      username,
+      full_name: fullName,
+      campus,
+      major,
+    },
+    { onConflict: "id" }
+  );
+
+  if (profileError) {
+    console.error("SUPABASE PROFILE UPSERT ERROR:", profileError);
+    return res.status(400).json({ error: profileError.message });
+  }
+
+  res.json({ ok: true });
 });
 
 app.get("/api/search", async (req, res) => {
@@ -397,6 +584,17 @@ res.status(500).json({
 });
   }
 });
-app.listen(PORT, () =>
+const server = app.listen(PORT, () =>
   console.log(`Backend running at http://localhost:${PORT}`)
 );
+
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(
+      `Port ${PORT} is already in use. Stop the old backend before running npm start again.`
+    );
+    process.exit(1);
+  }
+
+  throw error;
+});

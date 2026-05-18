@@ -7,7 +7,6 @@ import {
   Plus,
   X,
   Upload,
-  Filter,
   Trash2,
   MessageCircle,
   ShieldAlert,
@@ -18,6 +17,7 @@ ShoppingBag,
 } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { CUNY_THEMES } from "../lib/cunyThemes";
 
 type ItemCategory = {
   id: number;
@@ -126,6 +126,7 @@ const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   useState(false);
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState("all");
   const [selectedCourseFilter, setSelectedCourseFilter] = useState("all");
+  void setSelectedCourseFilter;
   const [minPriceFilter, setMinPriceFilter] = useState("");
 const [maxPriceFilter, setMaxPriceFilter] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
@@ -153,6 +154,10 @@ const [maxPriceFilter, setMaxPriceFilter] = useState("");
   const [savedListingIds, setSavedListingIds] = useState<string[]>([]);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 const [buyLoading, setBuyLoading] = useState(false);
+  const [conditionFilter, setConditionFilter] = useState<"" | "New" | "Good" | "Fair">("");
+  const [freeItemsOnly, setFreeItemsOnly] = useState(false);
+  const [availableNowOnly, setAvailableNowOnly] = useState(true);
+  const [sortOrder, setSortOrder] = useState<"newest" | "price_asc" | "price_desc">("newest");
 
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -320,7 +325,27 @@ if (selectedCategoryFilter !== "all") {
   }
 }
 
-    query = query.order("created_at", { ascending: false });
+if (conditionFilter === "New") {
+  query = query.in("condition", ["New", "Like New"]);
+} else if (conditionFilter) {
+  query = query.eq("condition", conditionFilter);
+}
+
+if (freeItemsOnly) {
+  query = query.eq("is_free", true);
+}
+
+if (availableNowOnly) {
+  query = query.eq("status", "Available");
+}
+
+if (sortOrder === "price_asc") {
+  query = query.order("price", { ascending: true });
+} else if (sortOrder === "price_desc") {
+  query = query.order("price", { ascending: false });
+} else {
+  query = query.order("created_at", { ascending: false });
+}
 
     const { data, error } = await query;
 
@@ -349,6 +374,10 @@ maxPriceFilter,
   collegeFromURL,
   minPriceFromURL,
   maxPriceFromURL,
+  conditionFilter,
+  freeItemsOnly,
+  availableNowOnly,
+  sortOrder,
 ]);
 
 useEffect(() => {
@@ -471,6 +500,7 @@ useEffect(() => {
     resetForm();
     setIsPostModalOpen(true);
   };
+  void openCreateModal;
 
   const openEditModal = (item: MarketplaceListing) => {
     setEditingItem(item);
@@ -1162,309 +1192,181 @@ alert(
 
   const formPriceLabel = formData.is_free ? "Free" : "Price";
 
+  const [sidebarCourseQuery, setSidebarCourseQuery] = useState("");
+  const displayItems = useMemo(() => {
+    if (!sidebarCourseQuery.trim()) return items;
+    const q = sidebarCourseQuery.toLowerCase();
+    return items.filter(item =>
+      item.courses?.code?.toLowerCase().includes(q) ||
+      item.departments?.name?.toLowerCase().includes(q)
+    );
+  }, [items, sidebarCourseQuery]);
+
   return (
-    <div
-      className="marketplace-page min-h-screen flex flex-col pt-24 pb-12 px-4 relative overflow-hidden"
-      style={{ background: "#f0f4ff" }}
-    >
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div
-          style={{
-            position: "absolute",
-            top: "-10%",
-            left: "-5%",
-            width: "55vw",
-            height: "55vw",
-            background:
-              "radial-gradient(circle, rgba(0,170,255,0.18) 0%, transparent 70%)",
-            borderRadius: "50%",
-            filter: "blur(40px)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "30%",
-            right: "-10%",
-            width: "50vw",
-            height: "50vw",
-            background:
-              "radial-gradient(circle, rgba(107,48,255,0.15) 0%, transparent 70%)",
-            borderRadius: "50%",
-            filter: "blur(50px)",
-          }}
-        />
-      </div>
+    <div className="paper-marketplace-page" style={{ minHeight: "100vh", backgroundColor: "#f1eadc", position: "relative" }}>
+      {/* Graph paper background */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, backgroundImage: "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
-      <div className="relative z-10 max-w-6xl mx-auto w-full">
-{myListingsOnly ? (
-  <h1 className="marketplace-title text-4xl font-black mb-8 text-center text-gray-900 tracking-tight">
-    My Listings
-  </h1>
-) : (
-  <div className="text-center mb-10">
-    <h1
-      className="text-5xl md:text-6xl font-black mb-3 leading-tight"
-      style={{
-        color: "#60a5fa",
-        textShadow:
-          "0 0 25px rgba(59,130,246,.45)",
-      }}
-    >
-      CUNY ReMarket Search
-    </h1>
+      {/* Sidebar + main layout */}
+      <div style={{ display: "flex", position: "relative", zIndex: 1, paddingTop: 78, minHeight: "100vh" }}>
 
-    <p className="text-slate-300 text-base font-semibold">
-      Buy, sell, and discover verified student listings across CUNY campuses.
-    </p>
-  </div>
-)}
+        {/* ── LEFT SIDEBAR ── */}
+        <aside style={{ width: 272, flexShrink: 0, borderRight: "1px solid rgba(0,0,0,0.28)", padding: "32px 16px", position: "sticky", top: 78, height: "calc(100vh - 78px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 22, backgroundColor: "#f2ede4" }}>
 
-        {actionMessage && (
-          <div className="mx-auto mb-5 max-w-3xl rounded-2xl border border-blue-100 bg-white/70 px-4 py-3 text-sm font-semibold text-gray-600 shadow-sm backdrop-blur-md">
-            {actionMessage}
+          {loggedIn && (
+            <button onClick={() => navigate("/sell")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 999, border: "2px solid #1a1216", backgroundColor: "#1a1216", color: "#ffffff", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: "3px 3px 0 rgba(0,0,0,0.25)" }}>
+              <Plus size={14} /> List something
+            </button>
+          )}
+
+          {/* Campus */}
+          <div>
+            <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", marginBottom: 10 }}>Campus</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: selectedCollegeFilter === "all" ? 700 : 500, color: "#1a1216" }}>
+                <input type="radio" name="campus" checked={selectedCollegeFilter === "all"} onChange={() => setSelectedCollegeFilter("all")} style={{ accentColor: "#1a1216" }} /> All CUNY
+              </label>
+              {CUNY_THEMES.filter(t => t.slug !== "other-cuny").map(t => (
+                <label key={t.slug} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: selectedCollegeFilter === t.short ? 700 : 500, color: "#1a1216" }}>
+                  <input type="radio" name="campus" checked={selectedCollegeFilter === t.short} onChange={() => setSelectedCollegeFilter(t.short)} style={{ accentColor: "#1a1216" }} /> {t.short}
+                </label>
+              ))}
+            </div>
           </div>
-        )}
 
-<div className="mb-12 flex flex-col gap-4 max-w-7xl mx-auto">
-
-  {/* Search + Post Item */}
-  <div className="flex items-center justify-center gap-3 flex-wrap">
-    <div className="relative flex-1 max-w-2xl group">
-      <Search className="marketplace-search-icon absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-
-      <input
-        type="text"
-        placeholder="Search listings..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="marketplace-search-input w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all"
-      />
-    </div>
-<button
-  onClick={handleAISearch}
-  disabled={aiSearching}
-  className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
-  style={{
-    background:
-      "linear-gradient(90deg,#06b6d4,#2563eb)",
-  }}
->
-  ✨
-  {aiSearching
-    ? "Thinking..."
-    : "AI Search"}
-</button>
-    {loggedIn && (
-      <button
-        onClick={openCreateModal}
-        className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
-        style={{
-          background:
-            "linear-gradient(90deg,#00AAFF,#6B30FF)",
-        }}
-      >
-        <Plus size={20} />
-        Post Item
-      </button>
-    )}
-  </div>
-
-  {/* Filters */}
-  <div className="flex gap-3 justify-center items-center flex-wrap max-w-7xl mx-auto">
-
-{/* College Filter */}
-<div className="relative">
-  <select
-    value={
-      selectedCollegeFilter
-    }
-    onChange={(e) =>
-      setSelectedCollegeFilter(
-        e.target.value
-      )
-    }
-    className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
-  >
-    <option value="all">
-      All Colleges
-    </option>
-
-<option value="Hunter">Hunter College</option>
-<option value="Baruch">Baruch College</option>
-<option value="City">City College</option>
-<option value="Queens">Queens College</option>
-<option value="Brooklyn">Brooklyn College</option>
-<option value="John Jay">John Jay College</option>
-<option value="Lehman">Lehman College</option>
-<option value="Staten Island">College of Staten Island</option>
-<option value="NYC College of Technology">NYC College of Technology</option>
-  </select>
-
-  <Filter
-    size={16}
-    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-  />
-</div>
-  {/* Department Filter */}
-  <div className="relative">
-    <select
-      value={selectedDepartmentFilter}
-      onChange={(e) =>
-        setSelectedDepartmentFilter(
-          e.target.value
-        )
-      }
-      className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
-    >
-      <option value="all">
-        All Departments
-      </option>
-
-      {departments.map(
-        (department) => (
-          <option
-            key={department.id}
-            value={department.id}
-          >
-            {department.name}
-          </option>
-        )
-      )}
-    </select>
-
-    <Filter
-      size={16}
-      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-    />
-  </div>
-
-  {/* Course Filter */}
-  <div className="relative">
-    <select
-value={selectedCourseFilter}
-onChange={(e) =>
-  setSelectedCourseFilter(e.target.value)
-}
-      className="marketplace-secondary-button flex items-center justify-center gap-2 pl-12 pr-6 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm appearance-none cursor-pointer outline-none"
-    >
-      <option value="all">
-        All Courses
-      </option>
-
-      {courses
-        .filter(
-          (course) =>
-            selectedDepartmentFilter ===
-              "all" ||
-            String(
-              course.department_id
-            ) ===
-              selectedDepartmentFilter
-        )
-        .map((course) => (
-          <option
-            key={course.id}
-            value={course.id}
-          >
-            {course.code}
-          </option>
-        ))}
-    </select>
-
-    <Filter
-      size={16}
-      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-    />
-  </div>
-
-  <input
-  type="number"
-  min="0"
-  step="1"
-  placeholder="Min $"
-  value={minPriceFilter}
-  onChange={(e) =>
-    setMinPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
-  }
-  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-/>
-
-<input
-  type="number"
-  min="0"
-  step="1"
-  placeholder="Max $"
-  value={maxPriceFilter}
-  onChange={(e) =>
-    setMaxPriceFilter(e.target.value.replace(/[^0-9]/g, ""))
-  }
-  className="marketplace-secondary-button px-5 py-3.5 rounded-2xl font-bold text-gray-700 bg-white/70 border border-gray-200/60 outline-none w-32 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-/>
-
+          {/* Course / Dept */}
+          <div>
+            <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", marginBottom: 8 }}>Course / Dept</p>
+            <input type="text" placeholder="e.g. PSY 101" value={sidebarCourseQuery} onChange={e => setSidebarCourseQuery(e.target.value)} style={{ width: "100%", border: "1.5px solid rgba(0,0,0,0.15)", borderRadius: 6, backgroundColor: "#ffffff", padding: "8px 10px", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 500, color: "#1a1216", outline: "none", boxSizing: "border-box" }} />
           </div>
-        </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-20 w-full">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          {/* Price */}
+          <div>
+            <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", marginBottom: 8 }}>Price</p>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input type="number" min="0" placeholder="$0" value={minPriceFilter} onChange={e => setMinPriceFilter(e.target.value.replace(/[^0-9]/g, ""))} style={{ width: "50%", border: "1.5px solid rgba(0,0,0,0.15)", borderRadius: 6, backgroundColor: "#ffffff", padding: "8px 10px", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+              <input type="number" min="0" placeholder="$500" value={maxPriceFilter} onChange={e => setMaxPriceFilter(e.target.value.replace(/[^0-9]/g, ""))} style={{ width: "50%", border: "1.5px solid rgba(0,0,0,0.15)", borderRadius: 6, backgroundColor: "#ffffff", padding: "8px 10px", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
           </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-20 text-gray-500 font-medium text-lg w-full">
-            No items listed yet.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="marketplace-card bg-white/60 backdrop-blur-md rounded-[2rem] p-4 border border-white/50 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col"
-              >
-                <div className="marketplace-card-image aspect-square rounded-2xl overflow-hidden mb-4 bg-gray-100">
-                  <img
-                    src={
-                      item.images?.[0] ||
-                      "https://placehold.co/400x400/e2e8f0/64748b?text=No+Image"
-                    }
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
 
-                <div className="px-2 flex-grow flex flex-col">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
-                      {item.courses?.code || "No Course"}
-                    </span>
-                    <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">
-  {item.campus_location?.split(" ")[0] || "CUNY"}
-</span>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-xs text-gray-500 mb-2">
-                    {item.departments?.name || "Department not added"}
-                  </p>
-
-                  <p className="text-2xl font-medium mb-4 text-gray-900">
-                    {formatPrice(item)}
-                  </p>
-
-                  <button
-                    onClick={() => setSelectedItem(item)}
-                    className="marketplace-view-button w-full mt-auto py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors"
-                  >
-                    View Details
+          {/* Condition */}
+          <div>
+            <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", marginBottom: 8 }}>Condition</p>
+            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+              {(["any", "New", "Good", "Fair"] as const).map(c => {
+                const active = c === "any" ? conditionFilter === "" : conditionFilter === c;
+                return (
+                  <button key={c} onClick={() => setConditionFilter(c === "any" ? "" : c)} style={{ padding: "4px 12px", borderRadius: 999, border: `1.5px solid ${active ? "#1a1216" : "rgba(0,0,0,0.18)"}`, backgroundColor: active ? "#1a1216" : "#ffffff", color: active ? "#ffffff" : "#1a1216", fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                    {c}
                   </button>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        )}
+
+          {/* Free / Available */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 500, color: "#1a1216" }}>
+              <input type="checkbox" checked={freeItemsOnly} onChange={e => setFreeItemsOnly(e.target.checked)} style={{ accentColor: "#1a1216", width: 14, height: 14 }} /> Free items only
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 500, color: "#1a1216" }}>
+              <input type="checkbox" checked={availableNowOnly} onChange={e => setAvailableNowOnly(e.target.checked)} style={{ accentColor: "#1a1216", width: 14, height: 14 }} /> Available now
+            </label>
+          </div>
+        </aside>
+
+        {/* ── MAIN CONTENT ── */}
+        <main style={{ flex: 1, padding: "34px 38px", minWidth: 0 }}>
+
+          {/* Search + AI */}
+          <div style={{ display: "flex", gap: 12, marginBottom: 22, alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1, maxWidth: 480 }}>
+              <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(0,0,0,0.35)", pointerEvents: "none" }} />
+              <input type="text" placeholder="Search listings..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ width: "100%", height: 44, border: "1.5px solid rgba(0,0,0,0.28)", borderRadius: 0, backgroundColor: "#fffdf7", padding: "10px 14px 10px 36px", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 14, fontWeight: 600, color: "#1a1216", outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <button onClick={handleAISearch} disabled={aiSearching} style={{ display: "flex", alignItems: "center", gap: 6, height: 44, padding: "0 18px", borderRadius: 0, border: "1.5px solid #1a1216", background: "#1f3d6d", color: "#ffffff", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 800, cursor: aiSearching ? "not-allowed" : "pointer", opacity: aiSearching ? 0.7 : 1, whiteSpace: "nowrap", boxShadow: "3px 3px 0 rgba(0,0,0,0.14)" }}>
+              ✨ {aiSearching ? "Thinking..." : "AI Search"}
+            </button>
+          </div>
+
+          {/* Heading + result count + sort */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <h1 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: "#1a1216", margin: 0 }}>
+                {myListingsOnly ? "My Listings" : "Browse listings"}
+              </h1>
+              {!loading && (
+                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, fontWeight: 700, color: "rgba(0,0,0,0.38)" }}>
+                  {displayItems.length} results
+                </span>
+              )}
+            </div>
+            <select value={sortOrder} onChange={e => setSortOrder(e.target.value as "newest" | "price_asc" | "price_desc")} style={{ border: "1.5px solid rgba(0,0,0,0.15)", borderRadius: 6, backgroundColor: "#ffffff", padding: "7px 12px", fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, fontWeight: 700, color: "#1a1216", outline: "none", cursor: "pointer" }}>
+              <option value="newest">Newest first</option>
+              <option value="price_asc">Price: low → high</option>
+              <option value="price_desc">Price: high → low</option>
+            </select>
+          </div>
+
+          {actionMessage && (
+            <div style={{ marginBottom: 16, padding: "10px 14px", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 8, backgroundColor: "#ffffff", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, color: "#1a1216" }}>{actionMessage}</div>
+          )}
+
+          {/* Listing grid */}
+          {loading ? (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 240 }}>
+              <div style={{ width: 36, height: 36, border: "3px solid rgba(0,0,0,0.1)", borderTop: "3px solid #1a1216", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            </div>
+          ) : displayItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0", fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 15, color: "rgba(0,0,0,0.4)" }}>No listings found.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+              {displayItems.map(item => (
+                <div key={item.id} onClick={() => navigate(`/marketplace/${item.id}`)}
+                  style={{ backgroundColor: "#ffffff", border: "1px solid rgba(0,0,0,0.1)", cursor: "pointer", overflow: "hidden" }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = "3px 3px 0 rgba(0,0,0,0.12)")}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+                >
+                  {/* Book cover */}
+                  <div style={{ aspectRatio: "4/3", backgroundColor: "#f7f0e4", position: "relative", overflow: "hidden", backgroundImage: "repeating-linear-gradient(45deg,rgba(0,0,0,0.055) 0,rgba(0,0,0,0.055) 1px,transparent 1px,transparent 8px)" }}>
+                    {item.images?.[0] ? (
+                      <img src={item.images[0]} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    ) : (
+                      <>
+                        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 100 75" preserveAspectRatio="none">
+                          <line x1="0" y1="0" x2="100" y2="75" stroke="rgba(0,0,0,0.18)" strokeWidth="1" />
+                        </svg>
+                        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, color: "rgba(0,0,0,0.26)", textTransform: "lowercase", letterSpacing: "0.02em" }}>book cover</span>
+                      </>
+                    )}
+                  </div>
+                  {/* Card info */}
+                  <div style={{ padding: "10px 12px 12px" }}>
+                    <h3 style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 13, fontWeight: 700, fontStyle: "italic", color: "#1a1216", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.title}</h3>
+                    <p style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, color: "rgba(0,0,0,0.38)", margin: "4px 0 8px", textTransform: "uppercase", letterSpacing: "0.08em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {item.courses?.code || "–"} · {item.campus_location?.split(" ")[0]?.toUpperCase() || "CUNY"}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 16, fontWeight: 800, color: "#1a1216" }}>{formatPrice(item)}</span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", padding: "3px 8px", borderRadius: 999, backgroundColor: item.status === "Available" ? "#d1fae5" : "#f1f5f9", color: item.status === "Available" ? "#065f46" : "#475569", border: `1px solid ${item.status === "Available" ? "#6ee7b7" : "#cbd5e1"}` }}>
+                        {item.status.toLowerCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Footer */}
+          <div style={{ marginTop: 48, paddingTop: 16, borderTop: "1px solid rgba(0,0,0,0.08)", display: "flex", justifyContent: "center", gap: 16 }}>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "rgba(0,0,0,0.28)" }}>© {new Date().getFullYear()} CUNY ReMarket</span>
+            <span style={{ color: "rgba(0,0,0,0.2)" }}>·</span>
+            <Link to="/privacy-policy" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "rgba(0,0,0,0.28)", textDecoration: "none" }}>Privacy Policy</Link>
+          </div>
+        </main>
       </div>
+
 
       {isPostModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -2373,18 +2275,7 @@ ${
         </div>
       )}
 
-      <div
-        className="relative z-10 w-full py-10 mt-auto flex justify-center items-center gap-4"
-        style={{ borderTop: "1px solid rgba(0,170,255,0.1)" }}
-      >
-        <p className="text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} CUNY ReMarket. All rights reserved.
-        </p>
-        <p className="text-gray-400">•</p>
-        <Link to="/privacy-policy" className="text-xs text-gray-400">
-          Privacy Policy
-        </Link>
-      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
