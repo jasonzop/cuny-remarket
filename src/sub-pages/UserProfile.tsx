@@ -7,6 +7,10 @@ type ProfileData = {
   id: string;
   username: string;
   full_name?: string | null;
+  campus?: string | null;
+  major?: string | null;
+  year?: string | null;
+  avatar_url?: string | null;
 };
 
 type Review = {
@@ -17,7 +21,17 @@ type Review = {
   body: string | null;
   created_at: string;
   reviewer_name?: string;
+  reviewer_avatar_url?: string | null;
+  reviewer_campus?: string | null;
+  reviewer_major?: string | null;
+  reviewer_year?: string | null;
 };
+
+function isMissingYearColumn(error?: { message?: string; details?: string; hint?: string; code?: string } | null) {
+  if (!error) return false;
+  const text = JSON.stringify(error).toLowerCase();
+  return text.includes("year") && (text.includes("schema cache") || text.includes("column"));
+}
 
 function StarRating({
   value,
@@ -52,6 +66,55 @@ function StarRating({
   );
 }
 
+function ProfileAvatar({
+  name,
+  avatarUrl,
+  sizeClass,
+  textClass,
+}: {
+  name: string;
+  avatarUrl?: string | null;
+  sizeClass: string;
+  textClass: string;
+}) {
+  const initial = (name || "U").charAt(0).toUpperCase();
+  return (
+    <div
+      className={`${sizeClass} flex flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white font-black`}
+      style={{ background: "linear-gradient(135deg,#3b82f6,#8b5cf6)" }}
+    >
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        <span className={textClass}>{initial}</span>
+      )}
+    </div>
+  );
+}
+
+function ProfileBadges({ campus, major, year }: { campus?: string | null; major?: string | null; year?: string | null }) {
+  if (!campus && !major && !year) return null;
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {campus && (
+        <span className="rounded-full bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-200">
+          {campus}
+        </span>
+      )}
+      {major && (
+        <span className="rounded-full bg-purple-500/15 px-3 py-1 text-xs font-bold text-purple-200">
+          {major}
+        </span>
+      )}
+      {year && (
+        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-200">
+          {year}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -65,9 +128,13 @@ export default function UserProfile() {
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
+  const [currentUserReviewId, setCurrentUserReviewId] = useState<string | null>(null);
+  const [isEditingReview, setIsEditingReview] = useState(false);
 
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState("");
+  const [savedReviewRating, setSavedReviewRating] = useState(5);
+  const [savedReviewBody, setSavedReviewBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
@@ -88,11 +155,20 @@ export default function UserProfile() {
     if (!userId) return;
     supabase
       .from("profiles")
-      .select("id, username, full_name")
+      .select("id, username, full_name, campus, major, year, avatar_url")
       .eq("id", userId)
       .single()
-      .then(({ data, error }) => {
-        if (!error && data) setProfile(data as ProfileData);
+      .then(async ({ data, error }) => {
+        if (!error && data) {
+          setProfile(data as ProfileData);
+        } else if (isMissingYearColumn(error)) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("id, username, full_name, campus, major, avatar_url")
+            .eq("id", userId)
+            .single();
+          if (!fallback.error && fallback.data) setProfile(fallback.data as ProfileData);
+        }
         setLoadingProfile(false);
       });
   }, [userId]);
@@ -120,17 +196,33 @@ export default function UserProfile() {
     // Fetch reviewer names from profiles
     const reviewerIds = [...new Set(rows.map((r) => r.reviewer_id))];
     if (reviewerIds.length > 0) {
-      const { data: profileData } = await supabase
+      let { data: profileData, error: reviewerProfileError } = await supabase
         .from("profiles")
-        .select("id, username, full_name")
+        .select("id, username, full_name, campus, major, year, avatar_url")
         .in("id", reviewerIds);
 
-      const nameMap: Record<string, string> = {};
+      if (isMissingYearColumn(reviewerProfileError)) {
+        const fallback = await supabase
+          .from("profiles")
+          .select("id, username, full_name, campus, major, avatar_url")
+          .in("id", reviewerIds);
+        profileData = (fallback.data || []).map((profile) => ({
+          ...profile,
+          year: null,
+        }));
+      }
+
+      const profileMap: Record<string, ProfileData> = {};
       for (const p of profileData ?? []) {
-        nameMap[p.id] = p.full_name || p.username || "User";
+        profileMap[p.id] = p as ProfileData;
       }
       for (const r of rows) {
-        r.reviewer_name = nameMap[r.reviewer_id] || "User";
+        const reviewer = profileMap[r.reviewer_id];
+        r.reviewer_name = reviewer?.full_name || reviewer?.username || "User";
+        r.reviewer_avatar_url = reviewer?.avatar_url || null;
+        r.reviewer_campus = reviewer?.campus || null;
+        r.reviewer_major = reviewer?.major || null;
+        r.reviewer_year = reviewer?.year || null;
       }
     }
 
@@ -147,12 +239,19 @@ export default function UserProfile() {
     if (!currentUserId || !userId || !reviewsSupported) return;
     supabase
       .from("marketplace_user_reviews")
-      .select("id")
+      .select("id, rating, body")
       .eq("reviewer_id", currentUserId)
       .eq("reviewed_id", userId)
       .maybeSingle()
       .then(({ data }) => {
         setAlreadyReviewed(!!data);
+        setCurrentUserReviewId(data?.id ?? null);
+        if (data) {
+          setRating(data.rating || 5);
+          setReviewBody(data.body || "");
+          setSavedReviewRating(data.rating || 5);
+          setSavedReviewBody(data.body || "");
+        }
       });
   }, [currentUserId, userId, reviewsSupported]);
 
@@ -166,29 +265,39 @@ export default function UserProfile() {
     setSubmitting(true);
     setSubmitMessage(null);
 
-    const { error } = await supabase.from("marketplace_user_reviews").insert({
-      reviewer_id: currentUserId,
-      reviewed_id: userId,
+    const payload = {
       rating,
       body: reviewBody.trim() || null,
-    });
+    };
+
+    const { error } = currentUserReviewId
+      ? await supabase
+          .from("marketplace_user_reviews")
+          .update(payload)
+          .eq("id", currentUserReviewId)
+          .eq("reviewer_id", currentUserId)
+      : await supabase.from("marketplace_user_reviews").insert({
+          reviewer_id: currentUserId,
+          reviewed_id: userId,
+          ...payload,
+        });
 
     setSubmitting(false);
 
     if (error) {
       setSubmitMessage("Error: " + error.message);
     } else {
-      setReviewBody("");
-      setRating(5);
       setAlreadyReviewed(true);
-      setSubmitMessage("Review submitted!");
+      setIsEditingReview(false);
+      setSavedReviewRating(rating);
+      setSavedReviewBody(reviewBody);
+      setSubmitMessage(currentUserReviewId ? "Review updated!" : "Review submitted!");
       loadReviews();
     }
-  }, [currentUserId, userId, rating, reviewBody, loadReviews]);
+  }, [currentUserId, userId, rating, reviewBody, currentUserReviewId, loadReviews]);
 
   // ── render ─────────────────────────────────────────────────────────────────
   const displayName = profile?.full_name || profile?.username || "User";
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen" style={{ background: "#0b0f1a", paddingTop: 80 }}>
@@ -221,12 +330,12 @@ export default function UserProfile() {
           {loadingProfile ? (
             <div className="w-16 h-16 rounded-2xl bg-white/10 animate-pulse" />
           ) : (
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-black flex-shrink-0"
-              style={{ background: "linear-gradient(135deg,#3b82f6,#8b5cf6)" }}
-            >
-              {initial}
-            </div>
+            <ProfileAvatar
+              name={displayName}
+              avatarUrl={profile?.avatar_url}
+              sizeClass="w-16 h-16"
+              textClass="text-2xl"
+            />
           )}
           <div>
             <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Public Profile</p>
@@ -241,6 +350,7 @@ export default function UserProfile() {
                 </span>
               </div>
             )}
+            <ProfileBadges campus={profile?.campus} major={profile?.major} year={profile?.year} />
             {!loadingReviews && reviews.length === 0 && (
               <p className="text-sm text-slate-500">No reviews yet</p>
             )}
@@ -248,7 +358,7 @@ export default function UserProfile() {
         </div>
 
         {/* Leave a review */}
-        {reviewsSupported && currentUserId && currentUserId !== userId && !alreadyReviewed && (
+        {reviewsSupported && currentUserId && currentUserId !== userId && (!alreadyReviewed || isEditingReview) && (
           <div
             className="rounded-3xl p-6 mb-5"
             style={{ background: "#0b1733", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -262,10 +372,27 @@ export default function UserProfile() {
                   <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
                 </svg>
               </div>
-              <div>
-                <h2 className="text-lg font-black text-white">Leave a Review</h2>
+              <div className="flex-1">
+                <h2 className="text-lg font-black text-white">
+                  {alreadyReviewed ? "Edit Your Review" : "Leave a Review"}
+                </h2>
                 <p className="text-sm text-slate-400">Rate your experience with this user.</p>
               </div>
+              {alreadyReviewed && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRating(savedReviewRating);
+                    setReviewBody(savedReviewBody);
+                    setSubmitMessage(null);
+                    setIsEditingReview(false);
+                  }}
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-slate-200 transition hover:text-white"
+                  style={{ background: "#13284d", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
 
             <div className="mb-4">
@@ -303,17 +430,28 @@ export default function UserProfile() {
               className="w-full py-4 rounded-2xl text-white font-bold text-base hover:opacity-90 disabled:opacity-60 transition"
               style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
             >
-              {submitting ? "Saving..." : "Save Review"}
+              {submitting ? "Saving..." : alreadyReviewed ? "Update Review" : "Save Review"}
             </button>
           </div>
         )}
 
-        {alreadyReviewed && currentUserId !== userId && (
+        {alreadyReviewed && currentUserId !== userId && !isEditingReview && (
           <div
             className="rounded-2xl p-4 mb-5 text-sm text-slate-300 text-center"
             style={{ background: "#0b1733", border: "1px solid rgba(255,255,255,0.08)" }}
           >
-            You have already reviewed this user.
+            <p>You have already reviewed this user.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitMessage(null);
+                setIsEditingReview(true);
+              }}
+              className="mt-3 rounded-xl px-4 py-2 text-xs font-bold text-white transition hover:opacity-90"
+              style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }}
+            >
+              Edit your review
+            </button>
           </div>
         )}
 
@@ -338,15 +476,22 @@ export default function UserProfile() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg,#3b82f6,#8b5cf6)" }}
-                    >
-                      {(review.reviewer_name || "U").charAt(0).toUpperCase()}
+                    <ProfileAvatar
+                      name={review.reviewer_name || "User"}
+                      avatarUrl={review.reviewer_avatar_url}
+                      sizeClass="w-9 h-9 rounded-full"
+                      textClass="text-xs"
+                    />
+                    <div>
+                      <span className="text-sm font-bold text-white">
+                        {review.reviewer_name || "User"}
+                      </span>
+                      <ProfileBadges
+                        campus={review.reviewer_campus}
+                        major={review.reviewer_major}
+                        year={review.reviewer_year}
+                      />
                     </div>
-                    <span className="text-sm font-bold text-white">
-                      {review.reviewer_name || "User"}
-                    </span>
                   </div>
                   <StarRating value={review.rating} size={16} />
                 </div>

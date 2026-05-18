@@ -56,7 +56,7 @@ export default function PrivacyPolicy() {
     <ul className="pp-ul">
       {items.map((item) => (
         <li key={item} style={pStyle}>
-          <span style={dashStyle}>—</span>
+          <span style={dashStyle}>-</span>
           {item}
         </li>
       ))}
@@ -109,7 +109,7 @@ export default function PrivacyPolicy() {
           className="pp-effective"
           style={{ color: isDark ? "#52525b" : "#aaa" }}
         >
-          Effective Date: May 5, 2025
+          Effective Date: May 18, 2026
         </p>
 
         <p
@@ -121,72 +121,79 @@ export default function PrivacyPolicy() {
             }`,
           }}
         >
-          Welcome to CUNY ReMarket. We are a small development team based in New York
-          City, New York, United States. This Privacy Policy explains what
-          information we collect from you when you use our platform, how we use
-          it, and how we protect it. By using CUNY ReMarket, you agree to the
-          practices described in this policy.
+          CUNY ReMarket is a student marketplace for buying, selling, saving,
+          reviewing, and messaging about items across CUNY campuses. This
+          Privacy Policy explains what information we collect, how we use it,
+          and how we protect it when you use the platform.
         </p>
 
-        {/* Section 1 */}
         <div className="pp-section">
           <SectionTitle num={1}>Information We Collect</SectionTitle>
+
           <p className="pp-sub" style={subStyle}>
-            Account Information
+            Account and Profile Information
           </p>
           <p className="pp-p" style={pStyle}>
-            When you create an account on CUNY ReMarket, we collect:
+            When you create or edit an account, we may collect:
           </p>
           <BulletList
             items={[
-              "Email address",
-              "Password (stored securely as a hash via Supabase — we never store your plain text password)",
+              "Your CUNY email address",
+              "Username, full name, campus, major, year/grade, and profile photo if you choose to add them",
+              "Password credentials handled by Supabase authentication; we do not store your plain text password",
             ]}
           />
-
-          <p className="pp-sub" style={subStyle}>
-            Search History
-          </p>
-          <p className="pp-p" style={pStyle}>
-            When you search for products on CUNY ReMarket, we store your user ID, the
-            search term you entered, and the timestamp of the search. This is
-            used to power your search history feature within the platform.
-          </p>
-
-          <p className="pp-sub" style={subStyle}>
-            Wishlist Data
-          </p>
-          <p className="pp-p" style={pStyle}>
-            When you add a product to your wishlist, we store your user ID along
-            with product information associated with that item, such as the
-            product title, price, link, and image URL as returned by our product
-            data provider.
-          </p>
 
           <p className="pp-sub" style={subStyle}>
             Marketplace Listings
           </p>
           <p className="pp-p" style={pStyle}>
-            When you create a listing on our marketplace, we store all
-            information you provide about the listing, including title,
-            description, price, images, and any other details you choose to
-            submit.
+            When you create a listing, we store the details you provide,
+            including title, description, price, category, department, course,
+            condition, campus pickup location, images, status, and optional map
+            address or coordinates.
           </p>
 
           <p className="pp-sub" style={subStyle}>
-            Messages and Conversations
+            Messages and Purchase Requests
           </p>
           <p className="pp-p" style={pStyle}>
-            When you use our messaging feature to communicate with buyers or
-            sellers, we store the messages exchanged as well as the
-            conversations they belong to. This data is used solely to deliver
-            and display your messages within the platform.
+            When buyers and sellers communicate, we store conversations,
+            messages, purchase requests, request status, and related listing
+            information so the inbox and marketplace flow work correctly.
+          </p>
+
+          <p className="pp-sub" style={subStyle}>
+            Saved Items, Cart, and Reviews
+          </p>
+          <p className="pp-p" style={pStyle}>
+            We store saved marketplace items, reviews you write, ratings you
+            give, and profile/review data needed to show public seller
+            reputation. Cart data may be stored in your browser session while
+            you use the app.
+          </p>
+
+          <p className="pp-sub" style={subStyle}>
+            Search and AI Search Data
+          </p>
+          <p className="pp-p" style={pStyle}>
+            When you search, filter, or use AI Search, we process the search
+            terms, categories, campus choices, filters, and prompts you enter.
+            Search results may be cached to improve performance and reduce
+            repeated API requests.
+          </p>
+
+          <p className="pp-sub" style={subStyle}>
+            Safety Tools
+          </p>
+          <p className="pp-p" style={pStyle}>
+            If you report or block a user, we store the information needed to
+            apply that action, review safety issues, and reduce abuse.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 2 */}
         <div className="pp-section">
           <SectionTitle num={2}>How We Use Your Information</SectionTitle>
           <p className="pp-p" style={pStyle}>
@@ -194,114 +201,113 @@ export default function PrivacyPolicy() {
           </p>
           <BulletList
             items={[
-              "Provide and operate the CUNY ReMarket platform",
-              "Authenticate your account and keep it secure",
-              "Display your search history, wishlist, listings, and messages",
-              "Improve and maintain the platform",
+              "Provide and operate CUNY ReMarket",
+              "Authenticate accounts and keep them secure",
+              "Display listings, profiles, saved items, messages, purchase requests, reviews, and marketplace status",
+              "Power marketplace search, AI-assisted search, and listing discovery",
+              "Help prevent spam, abuse, unsafe behavior, and duplicate or fraudulent activity",
+              "Maintain, debug, and improve the platform",
             ]}
           />
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 3 */}
         <div className="pp-section">
           <SectionTitle num={3}>How We Store Your Data</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            All user data is stored securely using Supabase, a managed cloud
-            database platform. Passwords are hashed and never stored in plain
-            text. We do not store any payment information — CUNY ReMarket does not
-            currently process payments.
+            User data is stored using Supabase, a managed cloud database and
+            authentication platform. Passwords are handled securely by
+            Supabase. CUNY ReMarket does not currently process payments or
+            store payment card information. Some cart data may be stored in
+            your browser session.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 4 */}
         <div className="pp-section">
           <SectionTitle num={4}>Third-Party Services</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            We use the following third-party services to operate CUNY ReMarket:
+            We use third-party services to operate parts of CUNY ReMarket:
           </p>
           <BulletList
             items={[
-              "Supabase — for database storage and user authentication",
-              "SerpApi — for fetching real-time product data from retailers. Search queries are sent to SerpApi to retrieve results.",
+              "Supabase for database storage, user authentication, account confirmation, and password reset",
+              "SerpApi for external product/search data when those search features are used",
+              "Google Gemini for AI-assisted marketplace search prompts",
+              "Geocodio for converting listing pickup addresses into map coordinates when map lookup is used",
+              "Email delivery services for account verification and marketplace verification messages",
             ]}
           />
           <p className="pp-p" style={pStyle}>
-            We do not sell your data to any third parties, and we do not use
-            your data for advertising purposes.
+            We do not sell your personal data and we do not use your data for
+            advertising.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 5 */}
         <div className="pp-section">
           <SectionTitle num={5}>Data Retention</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            We retain your data for as long as your account is active. If you
-            would like your data deleted, please contact us at the email address
-            below and we will process your request.
+            We keep your data for as long as your account is active or as long
+            as needed to operate the marketplace, keep records of listings and
+            messages, and maintain safety features. If you would like your data
+            deleted, contact us at the email address below.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 6 */}
         <div className="pp-section">
           <SectionTitle num={6}>Children's Privacy</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            CUNY ReMarket is not directed at children under the age of 13. We do not
-            knowingly collect personal information from anyone under 13. If you
-            believe a child has provided us with their information, please
-            contact us and we will delete it.
+            CUNY ReMarket is not directed at children under the age of 13. We do
+            not knowingly collect personal information from anyone under 13. If
+            you believe a child has provided us with information, please contact
+            us and we will delete it.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 7 */}
         <div className="pp-section">
           <SectionTitle num={7}>Your Rights</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            You have the right to:
+            You may request to:
           </p>
           <BulletList
             items={[
               "Access the personal data we hold about you",
-              "Request correction of inaccurate data",
-              "Request deletion of your account and associated data",
+              "Correct inaccurate profile or account data",
+              "Delete your account and associated data where possible",
             ]}
           />
           <p className="pp-p" style={pStyle}>
-            To exercise any of these rights, please reach out to us directly
-            using the contact information below.
+            To exercise these rights, contact us using the information below.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 8 */}
         <div className="pp-section">
           <SectionTitle num={8}>Changes to This Policy</SectionTitle>
           <p className="pp-p" style={pStyle}>
             We may update this Privacy Policy from time to time. If we make
             significant changes, we will update the effective date at the top of
-            this page. Continued use of CUNY ReMarket after any changes constitutes
-            your acceptance of the updated policy.
+            this page. Continued use of CUNY ReMarket after changes means you
+            accept the updated policy.
           </p>
         </div>
 
         <hr style={dividerStyle} />
 
-        {/* Section 9 */}
         <div className="pp-section">
           <SectionTitle num={9}>Contact Us</SectionTitle>
           <p className="pp-p" style={pStyle}>
-            If you have any questions or concerns about this Privacy Policy or
-            your data, please contact us at:
+            If you have questions or concerns about this Privacy Policy or your
+            data, contact us at:
           </p>
           <div
             className="pp-contact"
@@ -317,8 +323,8 @@ export default function PrivacyPolicy() {
             </p>
             <p className="pp-p" style={{ ...pStyle, marginBottom: 0 }}>
               Email:{" "}
-              <a href="mailto:chris.happel10@gmail.com" style={titleStyle}>
-                chris.happel10@gmail.com
+              <a href="mailto:bilal.bennour32@login.cuny.edu" style={titleStyle}>
+                bilal.bennour32@login.cuny.edu
               </a>
             </p>
           </div>

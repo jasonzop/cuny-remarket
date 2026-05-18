@@ -130,8 +130,8 @@ const catIcons: Record<string, React.ReactNode> = {
 
   const renderPanel = (id: NonNullable<DropID>) => {
     if (id === "marketplace") return (
-      <div className="p-4 w-64">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+      <div className="header-dropdown-content p-4 w-64">
+        <p className="header-dropdown-eyebrow text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
   Browse CUNY Categories
 </p>
         <div className="flex flex-col gap-0.5 mb-3">
@@ -160,23 +160,23 @@ const catIcons: Record<string, React.ReactNode> = {
             <button
               key={item.cat}
               onClick={() => goCategory(item.cat)}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group w-full"
+              className="header-dropdown-item flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group w-full"
               style={{ background: "transparent", border: "none", cursor: "pointer" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,170,255,0.06)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
             >
-              <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-gray-400 group-hover:text-indigo-500 transition-colors" style={{ border: "1px solid rgba(0,0,0,0.08)", background: "rgba(0,0,0,0.02)" }}>
+              <div className="header-dropdown-icon w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-gray-400 group-hover:text-indigo-500 transition-colors" style={{ border: "1px solid rgba(0,0,0,0.08)", background: "rgba(0,0,0,0.02)" }}>
                 {catIcons[item.cat]}
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-800 leading-tight">{item.label}</p>
-                <p className="text-[10px] text-gray-400">{item.sub}</p>
+                <p className="header-dropdown-title text-xs font-semibold text-gray-800 leading-tight">{item.label}</p>
+                <p className="header-dropdown-sub text-[10px] text-gray-400">{item.sub}</p>
               </div>
             </button>
           ))}
         </div>
-        <div className="flex gap-2 pt-2" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-          <Link to="/marketplace" onClick={closeAll} className="flex-1 text-center py-1.5 rounded-lg text-xs font-semibold text-gray-600 transition-all duration-150 hover:bg-gray-50" style={{ border: "1px solid rgba(0,0,0,0.10)" }}>
+        <div className="header-dropdown-actions flex gap-2 pt-2" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+          <Link to="/marketplace" onClick={closeAll} className="header-dropdown-secondary flex-1 text-center py-1.5 rounded-lg text-xs font-semibold text-gray-600 transition-all duration-150 hover:bg-gray-50" style={{ border: "1px solid rgba(0,0,0,0.10)" }}>
             Browse all
           </Link>
           <button onClick={goSell} className="flex-1 text-center py-1.5 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD, border: "none", cursor: "pointer" }}>
@@ -187,16 +187,16 @@ const catIcons: Record<string, React.ReactNode> = {
     );
 
     if (id === "search") return (
-      <div className="p-4 w-52">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Search</p>
+      <div className="header-dropdown-content p-4 w-52">
+        <p className="header-dropdown-eyebrow text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">Search</p>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">Find and compare products — prices, ratings and sellers in one place.</p>
         <Link to="/search" onClick={closeAll} className="flex items-center justify-center w-full py-2 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD }}>Open Search</Link>
       </div>
     );
 
     if (id === "about") return (
-      <div className="p-4 w-56">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">About CUNY ReMarket?</p>
+      <div className="header-dropdown-content p-4 w-56">
+        <p className="header-dropdown-eyebrow text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5">About CUNY ReMarket?</p>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">We verify listings so you shop with confidence — no fakes, no price inflation.</p>
         <Link to="/what-is-cuny-remarket" onClick={closeAll} className="flex items-center justify-center py-2 rounded-lg text-xs font-semibold text-white transition-all duration-150 hover:opacity-90" style={{ background: GRAD }}>Learn More</Link>
       </div>
@@ -324,7 +324,7 @@ const catIcons: Record<string, React.ReactNode> = {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 4, scale: 0.97 }}
                         transition={{ duration: 0.13, ease: "easeOut" }}
-                        className="absolute top-full mt-2 left-1/2 -translate-x-1/2 rounded-2xl z-50 overflow-hidden"
+                        className="header-dropdown-panel absolute top-full mt-2 left-1/2 -translate-x-1/2 rounded-2xl z-50 overflow-hidden"
                         style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.06)" }}
                         onMouseEnter={() => openPanel(dropID)}
                         onMouseLeave={scheduleClose}

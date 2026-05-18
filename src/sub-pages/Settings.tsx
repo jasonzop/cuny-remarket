@@ -18,6 +18,14 @@ ShoppingBag,
 import { useTheme, type ThemePreference } from "../Contexts/ThemeContext";
 import { supabase } from "../../supabase-client";
 
+const YEAR_OPTIONS = ["Freshman", "Sophomore", "Junior", "Senior", "Graduate", "Alumni"];
+
+function isMissingYearColumn(error?: { message?: string; details?: string; hint?: string; code?: string } | null) {
+  if (!error) return false;
+  const text = JSON.stringify(error).toLowerCase();
+  return text.includes("year") && (text.includes("schema cache") || text.includes("column"));
+}
+
 function formatMemberSince(dateString?: string) {
   if (!dateString) return "Unknown";
 
@@ -108,6 +116,7 @@ export default function Settings() {
   const [fullName, setFullName] = useState("");
   const [campus, setCampus] = useState("");
   const [major, setMajor] = useState("");
+  const [year, setYear] = useState("");
   const [majorInput, setMajorInput] = useState("");
 const [majors, setMajors] = useState<string[]>([]);
 const [showMajorDropdown, setShowMajorDropdown] = useState(false);
@@ -144,16 +153,26 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
       setProfileEmail(user.email ?? "");
       setMemberSince(formatMemberSince(user.created_at));
 
-      const { data: profile } = await supabase
+      let { data: profile, error: profileLoadError } = await supabase
         .from("profiles")
-        .select("username, full_name, campus, major, avatar_url")
+        .select("username, full_name, campus, major, year, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
+
+      if (isMissingYearColumn(profileLoadError)) {
+        const fallback = await supabase
+          .from("profiles")
+          .select("username, full_name, campus, major, avatar_url")
+          .eq("id", user.id)
+          .maybeSingle();
+        profile = fallback.data ? { ...fallback.data, year: metadata.year ?? "" } : null;
+      }
 
       const savedUsername = profile?.username ?? metadata.username ?? "";
       const savedFullName = profile?.full_name ?? metadata.full_name ?? "";
       const savedCampus = profile?.campus ?? metadata.campus ?? "";
       const savedMajor = profile?.major ?? metadata.major ?? "";
+      const savedYear = profile?.year ?? metadata.year ?? "";
       const savedAvatar = profile?.avatar_url ?? metadata.avatar_url ?? "";
 
       setUsername(savedUsername);
@@ -161,6 +180,7 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
       setFullName(savedFullName);
       setCampus(savedCampus);
       setMajor(savedMajor);
+      setYear(savedYear);
       setMajorInput(savedMajor);
 
 const { data: majorData } = await supabase
@@ -218,6 +238,7 @@ if (majorData) {
     const cleanFullName = fullName.trim();
     const cleanCampus = campus.trim();
     const cleanMajor = major.trim();
+    const cleanYear = year.trim();
 
     const { error: authError } = await supabase.auth.updateUser({
       data: {
@@ -225,6 +246,7 @@ if (majorData) {
         full_name: cleanFullName,
         campus: cleanCampus,
         major: cleanMajor,
+        year: cleanYear,
         avatar_url: nextAvatarUrl || "",
       },
     });
@@ -235,17 +257,27 @@ if (majorData) {
       return false;
     }
 
-    const { error: profileError } = await supabase.from("profiles").upsert(
-      {
-        id: userId,
-        username: cleanUsername,
-        full_name: cleanFullName,
-        campus: cleanCampus,
-        major: cleanMajor,
-        avatar_url: nextAvatarUrl || "",
-      },
-      { onConflict: "id" }
-    );
+    const profilePayload = {
+      id: userId,
+      username: cleanUsername,
+      full_name: cleanFullName,
+      campus: cleanCampus,
+      major: cleanMajor,
+      year: cleanYear,
+      avatar_url: nextAvatarUrl || "",
+    };
+
+    let { error: profileError } = await supabase
+      .from("profiles")
+      .upsert(profilePayload, { onConflict: "id" });
+
+    if (isMissingYearColumn(profileError)) {
+      const { year: _unusedYear, ...fallbackProfilePayload } = profilePayload;
+      const fallback = await supabase
+        .from("profiles")
+        .upsert(fallbackProfilePayload, { onConflict: "id" });
+      profileError = fallback.error;
+    }
 
     if (profileError) {
       setProfileError("Failed to save profile: " + profileError.message);
@@ -258,6 +290,7 @@ if (majorData) {
     setFullName(cleanFullName);
     setCampus(cleanCampus);
     setMajor(cleanMajor);
+    setYear(cleanYear);
     setAvatarUrl(nextAvatarUrl || "");
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 3000);
@@ -406,6 +439,9 @@ if (majorData) {
                       </span>
                       <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-600">
                         {major || "Major not added"}
+                      </span>
+                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+                        {year || "Year not added"}
                       </span>
                     </div>
                     <p className="mt-3 text-sm text-gray-500">
@@ -653,7 +689,29 @@ if (majorData) {
     </div>
   )}
 </div>
-</div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                  Year / Grade
+                </label>
+                <select
+                  value={year}
+                  onChange={(event) => {
+                    setYear(event.target.value);
+                    setProfileSaved(false);
+                    setProfileError(null);
+                  }}
+                  className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
+                >
+                  <option value="">Select your year</option>
+                  {YEAR_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {profileError && <p className="mt-3 text-xs text-red-500">{profileError}</p>}
 
             <button

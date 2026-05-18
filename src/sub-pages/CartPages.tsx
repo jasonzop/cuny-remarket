@@ -19,7 +19,7 @@ function PromoteModal({ onClose }: { onClose: () => void }) {
   if (success) {
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-2xl">
+        <div className="cart-modal w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-2xl">
           <div className="w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-4" style={{ background: "linear-gradient(135deg,#F59E0B,#EA580C)" }}>
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
@@ -35,7 +35,7 @@ function PromoteModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
+      <div className="cart-modal w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-start justify-between">
           <div>
@@ -220,7 +220,8 @@ function CheckoutForm({ cart, onSuccess }: { cart: CartItem[]; onSuccess: () => 
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    void validate;
+    setErrors({});
     setProcessing(true);
     setTimeout(() => { setProcessing(false); onSuccess(); }, 1400);
   };
@@ -302,7 +303,7 @@ function CheckoutForm({ cart, onSuccess }: { cart: CartItem[]; onSuccess: () => 
         ) : (
           <>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-            Pay {fmt(total)}
+            Buy Now
           </>
         )}
       </button>
@@ -351,7 +352,7 @@ export default function CartPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-20" style={{ background: "#f0f4ff" }}>
+      <div className="cart-page min-h-screen flex flex-col items-center justify-center px-4 py-20" style={{ background: "#f0f4ff" }}>
         <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
           <div style={{ position: "absolute", top: "20%", left: "10%", width: "50vw", height: "50vw", maxWidth: 600, maxHeight: 600, background: "radial-gradient(circle,rgba(16,185,129,0.12) 0%,transparent 70%)", borderRadius: "50%", filter: "blur(60px)" }} />
         </div>
@@ -359,9 +360,9 @@ export default function CartPage() {
           <div className="w-20 h-20 rounded-full flex items-center justify-center text-white mx-auto mb-6" style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 8px 32px rgba(16,185,129,0.35)" }}>
             <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Order confirmed!</h2>
-          <p className="text-gray-500 text-base mb-2">Your order has been received and is being processed.</p>
-          <p className="text-gray-400 text-sm mb-8">A confirmation will be sent to your email address.</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Thanks for your purchase!</h2>
+          <p className="text-gray-500 text-base mb-2">Your demo checkout is complete.</p>
+          <p className="text-gray-400 text-sm mb-8">Your cart has been emptied.</p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => { persist([]); navigate("/marketplace"); }} className="px-6 py-3 rounded-2xl text-sm font-bold text-white hover:opacity-90 transition" style={{ background: GRAD, border: "none" }}>Continue Shopping</button>
             <button onClick={() => navigate("/favourites")} className="px-6 py-3 rounded-2xl text-sm font-semibold text-gray-600 hover:bg-white transition" style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(0,0,0,0.1)" }}>View Saved Items</button>
@@ -374,7 +375,7 @@ export default function CartPage() {
   return (
     <>
     {showPromote && <PromoteModal onClose={() => setShowPromote(false)} />}
-    <div className="min-h-screen" style={{ background: "#f0f4ff" }}>
+    <div className="cart-page min-h-screen" style={{ background: "#f0f4ff" }}>
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div style={{ position: "absolute", top: "-10%", left: "-5%", width: "55vw", height: "55vw", maxWidth: 700, maxHeight: 700, background: "radial-gradient(circle,rgba(0,170,255,0.14) 0%,transparent 70%)", borderRadius: "50%", filter: "blur(50px)" }} />
         <div style={{ position: "absolute", bottom: "10%", right: "-5%", width: "45vw", height: "45vw", maxWidth: 600, maxHeight: 600, background: "radial-gradient(circle,rgba(107,48,255,0.11) 0%,transparent 70%)", borderRadius: "50%", filter: "blur(50px)" }} />
@@ -382,7 +383,7 @@ export default function CartPage() {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-8 pt-28 pb-16">
         <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-800 transition" style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(0,0,0,0.07)" }}>
+          <button onClick={() => navigate(-1)} className="cart-soft-button w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-800 transition" style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(0,0,0,0.07)" }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h1 className="text-3xl font-bold text-gray-900">Your Cart</h1>
@@ -395,7 +396,7 @@ export default function CartPage() {
 
         {cart.length === 0 && (
           <div className="flex flex-col items-center py-24 text-center">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}>
+            <div className="cart-empty-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.06)" }}>
               <svg className="w-9 h-9 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
             </div>
             <p className="text-gray-700 font-semibold text-lg mb-2">Your cart is empty</p>
@@ -412,7 +413,7 @@ export default function CartPage() {
                 {cart.map((item) => {
                   const imgs = Array.isArray(item.images) ? item.images : [];
                   return (
-                    <div key={item.id} className="flex gap-4 p-4 rounded-2xl items-start" style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+                    <div key={item.id} className="cart-card flex gap-4 p-4 rounded-2xl items-start" style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
                       {imgs.length > 0 ? (
                         <img src={imgs[0]} alt={item.title} className="rounded-xl flex-shrink-0" style={{ width: 84, height: 84, objectFit: "cover", objectPosition: "center" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       ) : (
@@ -426,14 +427,14 @@ export default function CartPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-extrabold" style={{ background: GRAD, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{fmt(item.price)}</p>
                           <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={() => changeQty(item.id, -1)} className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-gray-200 transition" style={{ background: "rgba(0,0,0,0.05)", border: "none", cursor: "pointer" }}>
+                            <button onClick={() => changeQty(item.id, -1)} className="cart-qty-button w-6 h-6 rounded-lg flex items-center justify-center hover:bg-gray-200 transition" style={{ background: "rgba(0,0,0,0.05)", border: "none", cursor: "pointer" }}>
                               <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
                             </button>
                             <span className="text-sm font-semibold text-gray-800 w-5 text-center">{item.qty}</span>
                             <button
                               onClick={() => changeQty(item.id, 1)}
                               disabled={item.qty >= (item.stock ?? 1)}
-                              className="w-6 h-6 rounded-lg flex items-center justify-center transition"
+                              className="cart-qty-button w-6 h-6 rounded-lg flex items-center justify-center transition"
                               style={{ background: item.qty >= (item.stock ?? 1) ? "rgba(0,0,0,0.02)" : "rgba(0,0,0,0.05)", border: "none", cursor: item.qty >= (item.stock ?? 1) ? "not-allowed" : "pointer", opacity: item.qty >= (item.stock ?? 1) ? 0.35 : 1 }}
                             >
                               <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
@@ -455,7 +456,7 @@ export default function CartPage() {
                 })}
               </div>
 
-              <button onClick={() => navigate("/favourites")} className="mt-4 w-full p-3.5 rounded-2xl flex items-center gap-3 text-left hover:bg-white/70 transition" style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(107,48,255,0.12)", cursor: "pointer" }}>
+              <button onClick={() => navigate("/favourites")} className="cart-nudge mt-4 w-full p-3.5 rounded-2xl flex items-center gap-3 text-left hover:bg-white/70 transition" style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(107,48,255,0.12)", cursor: "pointer" }}>
                 <svg className="w-5 h-5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>
                 <span className="text-sm text-gray-600">View your saved and hearted items</span>
                 <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -464,7 +465,7 @@ export default function CartPage() {
               {/* Promote nudge */}
               <button
                 onClick={() => setShowPromote(true)}
-                className="mt-3 w-full p-3.5 rounded-2xl flex items-center gap-3 text-left hover:bg-white/70 transition"
+                className="hidden"
                 style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(245,158,11,0.25)", cursor: "pointer" }}
               >
                 <svg className="w-5 h-5 flex-shrink-0" style={{ color: "rgb(245,158,11)" }} fill="currentColor" viewBox="0 0 20 20">
@@ -479,7 +480,7 @@ export default function CartPage() {
             </div>
 
             {/* Checkout panel */}
-            <div className="rounded-2xl p-6" style={{ flex: 1, minWidth: 300, background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+            <div className="cart-card rounded-2xl p-6" style={{ flex: 1, minWidth: 300, background: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
               <h3 className="text-lg font-bold text-gray-900 mb-4">Checkout</h3>
               <CheckoutForm cart={cart} onSuccess={() => { persist([]); setSuccess(true); }} />
             </div>

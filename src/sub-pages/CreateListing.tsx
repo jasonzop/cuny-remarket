@@ -273,7 +273,7 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#0b0f1a", paddingTop: 80 }}>
+    <div className="create-listing-page min-h-screen" style={{ background: "#0b0f1a", paddingTop: 80 }}>
       <div className="max-w-lg mx-auto px-4 pb-16">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -292,11 +292,9 @@ export default function CreateListing() {
 
         {/* Form card */}
         <div
-          className="rounded-[2rem] overflow-hidden shadow-2xl"
-          style={{ background: "#ffffff" }}
+          className="create-listing-card rounded-[2rem] overflow-hidden border shadow-2xl"
+          style={{ background: "#120820", borderColor: "rgba(147, 51, 234, 0.32)" }}
         >
-          <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg,#00AAFF,#6B30FF)" }} />
-
           <form onSubmit={handleSubmit} className="p-8 space-y-5">
             {/* Category */}
             <div className="relative flex flex-col gap-1.5">

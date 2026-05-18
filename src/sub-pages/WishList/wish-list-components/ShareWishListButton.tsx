@@ -15,8 +15,8 @@ export default function ShareWishListButton() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${username}'s VeriFind wishlist`,
-          text: "Check out my VeriFind wishlist.",
+          title: `${username}'s CUNY ReMarket wishlist`,
+          text: "Check out my CUNY ReMarket wishlist.",
           url,
         });
         return;
