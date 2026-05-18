@@ -10,6 +10,7 @@ type ProfileData = {
   campus?: string | null;
   major?: string | null;
   year?: string | null;
+  bio?: string | null;
   avatar_url?: string | null;
 };
 
@@ -31,6 +32,15 @@ function isMissingYearColumn(error?: { message?: string; details?: string; hint?
   if (!error) return false;
   const text = JSON.stringify(error).toLowerCase();
   return text.includes("year") && (text.includes("schema cache") || text.includes("column"));
+}
+
+function isMissingProfileExtraColumn(
+  error: { message?: string; details?: string; hint?: string; code?: string } | null | undefined,
+  column: string
+) {
+  if (!error) return false;
+  const text = JSON.stringify(error).toLowerCase();
+  return text.includes(column) && (text.includes("schema cache") || text.includes("column"));
 }
 
 function StarRating({
@@ -155,13 +165,13 @@ export default function UserProfile() {
     if (!userId) return;
     supabase
       .from("profiles")
-      .select("id, username, full_name, campus, major, year, avatar_url")
+      .select("id, username, full_name, campus, major, year, bio, avatar_url")
       .eq("id", userId)
       .single()
       .then(async ({ data, error }) => {
         if (!error && data) {
           setProfile(data as ProfileData);
-        } else if (isMissingYearColumn(error)) {
+        } else if (isMissingYearColumn(error) || isMissingProfileExtraColumn(error, "bio")) {
           const fallback = await supabase
             .from("profiles")
             .select("id, username, full_name, campus, major, avatar_url")
@@ -351,6 +361,11 @@ export default function UserProfile() {
               </div>
             )}
             <ProfileBadges campus={profile?.campus} major={profile?.major} year={profile?.year} />
+            {profile?.bio && (
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+                {profile.bio}
+              </p>
+            )}
             {!loadingReviews && reviews.length === 0 && (
               <p className="text-sm text-slate-500">No reviews yet</p>
             )}

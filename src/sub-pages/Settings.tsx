@@ -26,6 +26,15 @@ function isMissingYearColumn(error?: { message?: string; details?: string; hint?
   return text.includes("year") && (text.includes("schema cache") || text.includes("column"));
 }
 
+function isMissingProfileExtraColumn(
+  error: { message?: string; details?: string; hint?: string; code?: string } | null | undefined,
+  column: string
+) {
+  if (!error) return false;
+  const text = JSON.stringify(error).toLowerCase();
+  return text.includes(column) && (text.includes("schema cache") || text.includes("column"));
+}
+
 function formatMemberSince(dateString?: string) {
   if (!dateString) return "Unknown";
 
@@ -117,6 +126,7 @@ export default function Settings() {
   const [campus, setCampus] = useState("");
   const [major, setMajor] = useState("");
   const [year, setYear] = useState("");
+  const [bio, setBio] = useState("");
   const [majorInput, setMajorInput] = useState("");
 const [majors, setMajors] = useState<string[]>([]);
 const [showMajorDropdown, setShowMajorDropdown] = useState(false);
@@ -155,17 +165,19 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
 
       let { data: profile, error: profileLoadError } = await supabase
         .from("profiles")
-        .select("username, full_name, campus, major, year, avatar_url")
+        .select("username, full_name, campus, major, year, bio, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (isMissingYearColumn(profileLoadError)) {
+      if (isMissingYearColumn(profileLoadError) || isMissingProfileExtraColumn(profileLoadError, "bio")) {
         const fallback = await supabase
           .from("profiles")
           .select("username, full_name, campus, major, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
-        profile = fallback.data ? { ...fallback.data, year: metadata.year ?? "" } : null;
+        profile = fallback.data
+          ? { ...fallback.data, year: metadata.year ?? "", bio: metadata.bio ?? "" }
+          : null;
       }
 
       const savedUsername = profile?.username ?? metadata.username ?? "";
@@ -173,6 +185,7 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
       const savedCampus = profile?.campus ?? metadata.campus ?? "";
       const savedMajor = profile?.major ?? metadata.major ?? "";
       const savedYear = profile?.year ?? metadata.year ?? "";
+      const savedBio = profile?.bio ?? metadata.bio ?? "";
       const savedAvatar = profile?.avatar_url ?? metadata.avatar_url ?? "";
 
       setUsername(savedUsername);
@@ -181,6 +194,7 @@ const [showMajorDropdown, setShowMajorDropdown] = useState(false);
       setCampus(savedCampus);
       setMajor(savedMajor);
       setYear(savedYear);
+      setBio(savedBio);
       setMajorInput(savedMajor);
 
 const { data: majorData } = await supabase
@@ -239,6 +253,7 @@ if (majorData) {
     const cleanCampus = campus.trim();
     const cleanMajor = major.trim();
     const cleanYear = year.trim();
+    const cleanBio = bio.trim();
 
     const { error: authError } = await supabase.auth.updateUser({
       data: {
@@ -247,6 +262,7 @@ if (majorData) {
         campus: cleanCampus,
         major: cleanMajor,
         year: cleanYear,
+        bio: cleanBio,
         avatar_url: nextAvatarUrl || "",
       },
     });
@@ -264,6 +280,7 @@ if (majorData) {
       campus: cleanCampus,
       major: cleanMajor,
       year: cleanYear,
+      bio: cleanBio,
       avatar_url: nextAvatarUrl || "",
     };
 
@@ -271,8 +288,8 @@ if (majorData) {
       .from("profiles")
       .upsert(profilePayload, { onConflict: "id" });
 
-    if (isMissingYearColumn(profileError)) {
-      const { year: _unusedYear, ...fallbackProfilePayload } = profilePayload;
+    if (isMissingYearColumn(profileError) || isMissingProfileExtraColumn(profileError, "bio")) {
+      const { year: _unusedYear, bio: _unusedBio, ...fallbackProfilePayload } = profilePayload;
       const fallback = await supabase
         .from("profiles")
         .upsert(fallbackProfilePayload, { onConflict: "id" });
@@ -291,6 +308,7 @@ if (majorData) {
     setCampus(cleanCampus);
     setMajor(cleanMajor);
     setYear(cleanYear);
+    setBio(cleanBio);
     setAvatarUrl(nextAvatarUrl || "");
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 3000);
@@ -447,6 +465,11 @@ if (majorData) {
                     <p className="mt-3 text-sm text-gray-500">
                       Member since {memberSince}
                     </p>
+                    {bio && (
+                      <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-600">
+                        {bio}
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -710,6 +733,25 @@ if (majorData) {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                  Bio
+                </label>
+                <textarea
+                  value={bio}
+                  onChange={(event) => {
+                    setBio(event.target.value);
+                    setProfileSaved(false);
+                    setProfileError(null);
+                  }}
+                  rows={4}
+                  maxLength={280}
+                  placeholder="Tell classmates what you sell, what you study, or where you usually meet."
+                  className="mt-2 w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-400"
+                />
+                <p className="mt-1 text-xs text-gray-500">{bio.length}/280</p>
               </div>
             </div>
             {profileError && <p className="mt-3 text-xs text-red-500">{profileError}</p>}

@@ -2110,14 +2110,6 @@ ${
       {isBuyModalOpen && selectedItem && (
   <div className="fixed inset-0 z-[94] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
     <div className="w-full max-w-lg rounded-[2rem] border border-cyan-500/20 bg-[#0b1733] shadow-2xl overflow-hidden">
-      <div
-        className="h-1.5 w-full"
-        style={{
-          background:
-            "linear-gradient(90deg,#00AAFF,#6B30FF)",
-        }}
-      />
-
       <div className="p-7">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-black text-white">
